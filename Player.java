@@ -13,6 +13,10 @@ public class Player {
     //TODO private Room playerRoom;
 
 
+
+    public Player() {
+
+    }
     /*
         ======== PRIVATE METHODS ========
      */
