@@ -1,7 +1,7 @@
 public class Role {
 
     private int roleID;
-    private string roleName;
+    private String roleName;
     private boolean roleAvailable;
     private boolean isOnCardRole;
 
@@ -18,4 +18,5 @@ public class Role {
     public void setRoleAvailable(boolean isAvailable) {
         this.roleAvailable = isAvailable;
     }
+
 }

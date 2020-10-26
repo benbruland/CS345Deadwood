@@ -12,11 +12,10 @@ public class Player {
     private Role playerRole;
     //TODO private Room playerRoom;
 
-
-
     public Player() {
 
     }
+
     /*
         ======== PRIVATE METHODS ========
      */
