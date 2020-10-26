@@ -5,9 +5,9 @@ public class Scene {
 	private int sceneBudget;
 	private int shotsRemaining;
 	private int totalShots;
-
-	/* Non-primitive Attributes */
 	private String sceneName;
+	
+	/* Non-primitive Attributes */
 	private Role[] roles;
 	private Player[] playersInScene;
 
@@ -27,27 +27,35 @@ public class Scene {
 
 	//TODO Implement getOnCardRoles
 	public Role[] getOnCardRoles(){
-
+		
+		// Change return statement
+		return roles;
 	}
 
 	//TODO Implement getOffCardRoles
 	public Role[] getOffCardRoles(){
 
+		// Change return statement
+		return roles;
 	}
 
 	//TODO Implement getPlayersOnCard
 	public Player[] getPlayersOnCard(int roleID){
-
+	
+		// Change return statement
+		return playersInScene;
 	}
 
 	//TODO Implement getPlayersOffCard
 	public Player[] getPlayersOffCard(int roleID){
 
+		// Change return statement
+		return playersInScene;
 	}
 
-	//TODO Implement getPlayersInScene
 	public Player[] getPlayersInScene(int sceneID){
-
+		
+		return this.playersInScene;
 	}
 
 	public void removeShotCounter(){

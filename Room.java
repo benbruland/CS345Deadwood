@@ -26,7 +26,8 @@ public class Room {
 
 	//TODO Implement playersInRoom
 	public Player[] playersInRoom(){
-		
+	
+		return this.playersInRoom;
 	}
 	
 	public Scene getRoomScene(){
