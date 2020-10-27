@@ -9,8 +9,19 @@ public class BoardManager {
     private Player activePlayer;
 
 
+    public static void main(String[] args) {
+        Board b = new Board();
+        BoardManager bm = new BoardManager();
+        Player p = new Player();
+        Role r = new Role();
+        Room rm  = new Room();
+        Scene s = new Scene();
+        System.out.println("Hello from main!");
+    }
+
+
     //TODO Implement Constructors
-    public BoardManger() {
+    public BoardManager() {
 
     }
 
@@ -20,8 +31,8 @@ public class BoardManager {
 
 
     //TODO Implement CycleGameDay()
-    public cycleGameDay() {
-
+    public void cycleGameDay() {
+        
     }
 
     //TODO Implement ScoreGame()
