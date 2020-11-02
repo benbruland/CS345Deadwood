@@ -1,19 +1,22 @@
 public class Room {
 
-	/* Private Attributes */
+	/* Primitive Attributes */
 	private int roomID;
 	private String roomName;
+
+	/* Non-primitive Attributes*/
+	private Scene roomScene;	
 	private Room[] adjacentRooms;
-	private Scene roomScene;
 	private Player[] playersInRoom;
 	
-	/* Public Attributes*/
 
-    
-	//TODO Implement Room Constructor
-    	public Room() {
-
-    	}
+	public Room(int id, String name, Scene scene, Room[] roomList, Player[] playerList) {
+		this.roomID = id;
+		this.roomName = name;
+		this.roomScene = scene;
+		this.adjacentRooms = roomList;
+		this.playersInRoom = playerList;
+	}
 
 	/*
 	 * ====== PRIVATE METHODS ======

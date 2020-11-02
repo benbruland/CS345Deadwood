@@ -1,21 +1,27 @@
 public class Scene {
 
 	/* Primitive Attributes */
+	private String sceneName, sceneDescription;
 	private int sceneID;
 	private int sceneBudget;
 	private int shotsRemaining;
 	private int totalShots;
-	private String sceneName;
 	
 	/* Non-primitive Attributes */
 	private Role[] roles;
 	private Player[] playersInScene;
 
     
-	//TODO Implement Scene Constructor
-    	public Scene(){
-
-    	}
+	public Scene(String sceneN, String sceneD, int id, int budget, int shotsR, int totalS, Role[] roleList, Player[] playerList){
+		this.sceneName = sceneN;
+		this.sceneDescription = sceneD;
+		this.sceneID = id;
+		this.sceneBudget = budget;
+		this.shotsRemaining = shotsR;
+		this.totalShots = totalS;
+		this.roles = roleList;
+		this.playersInScene = playerList;
+	}
 
 	/*
 	 * ====== PRIVATE METHODS ======
