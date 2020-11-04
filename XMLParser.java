@@ -6,11 +6,12 @@ import org.w3c.dom.NodeList;
 import org.w3c.dom.Node;
 import org.w3c.dom.Element;
 import java.io.File;
+import java.util.ArrayList;
 
 public class XMLParser {
     // building a document from the XML file
     // returns a Document object after loading the book.xml file.
-    public static Document getDocFromFile(String filename)
+    public Document getDocFromFile(String filename)
             throws ParserConfigurationException{
         {
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -33,30 +34,28 @@ public class XMLParser {
                  scene number="7"
     */
     // reads data from XML file and prints data
-    public static Card[] readCardData(Document d) {
+    private Card createCard(Node card) {
+        return null;
+    }
 
-        Element rootCard = d.getDocumentElement();
+    public ArrayList<Card> readCardData() {
+        ArrayList<Card> deck = new ArrayList<>();
+        try {
+            Document cardDoc = getDocFromFile("XML/cards.xml");
+            Element rootCard = cardDoc.getDocumentElement();
 
-        NodeList cards = rootCard.getElementsByTagName("card");
-        int numCards = cards.getLength();
-        
-        for (int i = 0; i < numCards; i++) {
-            Node card = cards.item(i);
-            String cardName = card.getAttributes().getNamedItem("name").getNodeValue();
-            System.out.printf("Card %d name = %s\n", i+1, cardName);
+            NodeList cards = rootCard.getElementsByTagName("card");
+            int numCards = cards.getLength();
+            
+            for (int i = 0; i < numCards; i++) {
+                Node card = cards.item(i);
+                Card newCard = createCard(card);
+            }
+        } catch(Exception e) {
+            System.out.println("XML parse failure");
+            e.printStackTrace();
         }
-
         //TODO: Fill in return value
         return null;
     }
-    public static void main(String[] args) {
-        try {
-            Document d = getDocFromFile("XML/cards.xml");
-            Card[] cards = readCardData(d);
-        } catch(Exception e) {
-            System.out.print("Exception: "+ e.toString());
-        }
-       
-    }
-
 }

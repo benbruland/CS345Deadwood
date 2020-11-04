@@ -26,6 +26,7 @@ public class BoardManager {
         Room rm  = new Room();
         Scene s = new Scene();
         XMLParser parser = new XMLParser();
+        Card[] cards = parser.readCardData();
 
     }
 
