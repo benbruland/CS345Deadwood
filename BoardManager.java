@@ -1,3 +1,12 @@
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.ParserConfigurationException;
+import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
+import org.w3c.dom.Node;
+import org.w3c.dom.Element;
+import java.io.File;
+
 public class BoardManager {
 
     /* Primitive Attributes */
@@ -16,7 +25,8 @@ public class BoardManager {
         Role r = new Role();
         Room rm  = new Room();
         Scene s = new Scene();
-        System.out.println("Hello from main!");
+        XMLParser parser = new XMLParser();
+
     }
 
 

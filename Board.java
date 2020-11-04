@@ -11,9 +11,9 @@ public class Board {
 
     
 	//TODO Implement Board Constructor
-    	public Board() {
-
-    	}
+    public Board() {
+		
+    }
 
 	/*
 	 * ====== PRIVATE METHODS ======

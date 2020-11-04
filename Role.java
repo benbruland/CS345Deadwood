@@ -1,22 +1,32 @@
 public class Role {
 
     private int roleID;
+    private int roleLevel;
     private String roleName;
     private boolean roleAvailable;
     private boolean isOnCardRole;
+    
 
-    //TODO Implement Role Constructor
     public Role() {
 
+    }
+
+    public Role(int id, int level, String name, boolean isOnCard) {
+        this.roleID = id;
+        this.roleLevel = level;
+        this.roleName = name;
+        this.isOnCardRole = isOnCard;
     }
 
     public boolean getRoleAvailable() {
         return this.roleAvailable;
     }
 
-    //TODO Implement SetRoleAvailable
+
     public void setRoleAvailable(boolean isAvailable) {
         this.roleAvailable = isAvailable;
     }
+
+    
 
 }
