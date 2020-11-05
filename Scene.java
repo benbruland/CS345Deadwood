@@ -11,7 +11,10 @@ public class Scene {
 	private Role[] roles;
 	private Player[] playersInScene;
 
-    
+	public Scene(){
+		
+	}
+	
 	public Scene(String sceneN, String sceneD, int id, int budget, int shotsR, int totalS, Role[] roleList, Player[] playerList){
 		this.sceneName = sceneN;
 		this.sceneDescription = sceneD;
