@@ -6,6 +6,7 @@ import org.w3c.dom.NodeList;
 import org.w3c.dom.Node;
 import org.w3c.dom.Element;
 import java.io.File;
+import java.util.ArrayList;
 
 public class BoardManager {
 
@@ -17,7 +18,7 @@ public class BoardManager {
     private Board gameBoard;
     private Player activePlayer;
 
-
+    
     public static void main(String[] args) {
         Board b = new Board();
         BoardManager bm = new BoardManager();
@@ -26,8 +27,11 @@ public class BoardManager {
         Room rm  = new Room();
         Scene s = new Scene();
         XMLParser parser = new XMLParser();
-        Card[] cards = parser.readCardData();
-
+        ArrayList<Card> cards = parser.readCardData();
+        for (int i = 0; i < cards.size(); i++) {
+            cards.get(i).printCard();
+        }
+        System.out.println("Total number of cards: " + cards.size());
     }
 
 

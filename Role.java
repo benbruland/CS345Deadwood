@@ -5,7 +5,7 @@ public class Role {
     private String roleName;
     private boolean roleAvailable = true;
     private boolean isOnCardRole;
-    
+    private String line;
 
     public Role() {
 
