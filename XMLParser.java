@@ -28,30 +28,30 @@ public class XMLParser {
         } // exception handling
 
     }
-    /*
-        Card Tags:
-            card name="Evil Wears a Hat" img="01.png" budget="4"
-                 scene number="7"
-    */
-    // reads data from XML file and prints data
+
     
     private String getAttributeByName(Node n, String attribute) {
         return n.getAttributes().getNamedItem(attribute).getNodeValue();
     }
 
-    private Role createRole(Node n, boolean onCard) {
+    //Pass this method a role node from the XML Document builder,
+    //creates a role object from the XML and returns it
+    private Role createRole(Node n, boolean onCard, int roleId) {
         
-        int roleId = -1; //TODO: figure out how to assign roles ids
         
         String roleName = getAttributeByName(n, "name");
         int roleLevel = Integer.parseInt(getAttributeByName(n, "level"));
         
         Role newRole = new Role(roleId, roleLevel, roleName, onCard);
+
         return newRole;
     }
 
+    //Creates a card by reading XML stored in XML/cards.xml
+    //pass this method an XML node, it returns a Card object
     private Card createCard(Node card) {
-        int sceneID = 999;
+        int sceneID = 0;
+        int roleIDCounter = 0;
         int budget = Integer.parseInt(getAttributeByName(card, "budget"));
         String cardName = getAttributeByName(card, "name");
         boolean rolesOnCard = true;
@@ -63,16 +63,18 @@ public class XMLParser {
         String roleType = "part";
 
         for (int i = 0; i < numChildren; i++) {
+            //Child contains: <scene> <part> <line> and <area> tags
             Node child = cardData.item(i);
             String childType = child.getNodeName();
 
             if (sceneType.equals(childType)) {
-            
+
                 sceneID = Integer.parseInt(getAttributeByName(child, "number"));
-                System.out.println("Scene ID : " + sceneID);
+           
             } else if (roleType.equals(childType)) {
-            
-                Role newRole = createRole(child, rolesOnCard);
+                //Role id is intended to be an index into the array list cardRoles
+                Role newRole = createRole(child, rolesOnCard, roleIDCounter);
+                roleIDCounter++;
                 cardRoles.add(newRole);
             }
         }

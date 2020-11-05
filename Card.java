@@ -25,7 +25,17 @@ public class Card {
         System.out.println("\t* Card Budget = " + this.cardBudget);
         System.out.println("\t* Num roles = " + this.cardRoles.size());
         System.out.println("\t* Card Scene Number = " + this.cardScene);
+        this.printCardRoles();
         System.out.println("==================================\n");
+    }
+
+    private void printCardRoles() {
+        int numRoles = this.cardRoles.size();
+        System.out.println("Card Roles: ");
+        for (int i = 0; i < numRoles; i++) {
+            System.out.println("Role [" + (i+1) + "] :" );
+            this.cardRoles.get(i).printRole();
+        }
     }
 
     public ArrayList<Role> getRoles() {

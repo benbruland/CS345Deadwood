@@ -17,7 +17,11 @@ public class Role {
         this.roleName = name;
         this.isOnCardRole = isOnCard;
     }
-
+    public void printRole() {
+        System.out.println("Role name = " + this.roleName);
+        System.out.println("Role level = " + this.roleLevel);
+        System.out.println("Role ID = " + this.roleID);
+    }
     public boolean getRoleAvailable() {
         return this.roleAvailable;
     }
