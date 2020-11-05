@@ -2,7 +2,7 @@ public class Card {
     private int cardBudget;
     private String cardName;
     private int cardScene;
-    private Role[] cardRoles;
+    private ArrayList<Role> cardRoles;
 
     public Card() {
         this.cardBudget = 0;
