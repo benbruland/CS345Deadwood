@@ -39,9 +39,7 @@ public class Room {
 	 * ====== PUBLIC METHODS ======
 	 */
 
-	//TODO Implement playersInRoom
-	public ArrayList<Player> playersInRoom(){
-	
+	public ArrayList<Player> getPlayersInRoom(){
 		return this.playersInRoom;
 	}
 	
@@ -49,15 +47,17 @@ public class Room {
 		return this.roomScene;
 	}
 
-	//TODO Implement addPlayerToRoom
-	public boolean addPlayerToRoom(int playerID){
-		
+	public boolean addPlayerToRoom(Player plyr){ 
+		if(!playersInRoom.contains(plyr)){
+			playersInRoom.add(plyr);
+			return true;
+		}
 		return false;
 	}
 
-	//TODO Implement removePlayerFromRoom
-	public boolean removePlayerFromRoom(int playerID){
-
-		return false;
+	public boolean removePlayerToRoom(Player plyr){ 
+		/* ArrayList.remove(Object obj) returns true if it finds obj in list and it is removed, else false.
+		    If there are duplicates, removes first occurence of obj and returns true. */
+		return playersInRoom.remove(plyr);
 	}
 }
