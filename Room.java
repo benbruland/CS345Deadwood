@@ -1,3 +1,5 @@
+import java.util.ArrayList;
+
 public class Room {
 
 	/* Primitive Attributes */
@@ -6,16 +8,26 @@ public class Room {
 
 	/* Non-primitive Attributes*/
 	private Scene roomScene;	
-	private Room[] adjacentRooms;
-	private Player[] playersInRoom;
+	private Room[] adjacentRooms; // non-ArrayList
+	private ArrayList<Player> playersInRoom;
 	
+	/* No argument constructor*/
+	public Room(){
 
-	public Room(int id, String name, Scene scene, Room[] roomList, Player[] playerList) {
+	}
+
+	//TODO: Implement special constructor for Trailer/Casting Office ???
+	// public Room(int id, String name){
+
+	// }
+
+	/* Constructor for basic acting rooms */
+	public Room(int id, String name, Scene scene, Room[] roomList) {
 		this.roomID = id;
 		this.roomName = name;
 		this.roomScene = scene;
 		this.adjacentRooms = roomList;
-		this.playersInRoom = playerList;
+		this.playersInRoom = new ArrayList<Player>();
 	}
 
 	/*
@@ -28,7 +40,7 @@ public class Room {
 	 */
 
 	//TODO Implement playersInRoom
-	public Player[] playersInRoom(){
+	public ArrayList<Player> playersInRoom(){
 	
 		return this.playersInRoom;
 	}
@@ -39,11 +51,13 @@ public class Room {
 
 	//TODO Implement addPlayerToRoom
 	public boolean addPlayerToRoom(int playerID){
+		
 		return false;
 	}
 
 	//TODO Implement removePlayerFromRoom
 	public boolean removePlayerFromRoom(int playerID){
+
 		return false;
 	}
 }

@@ -1,3 +1,5 @@
+import java.util.ArrayList;
+
 public class Scene {
 
 	/* Primitive Attributes */
@@ -8,22 +10,20 @@ public class Scene {
 	private int totalShots;
 	
 	/* Non-primitive Attributes */
-	private Role[] roles;
-	private Player[] playersInScene;
+	private ArrayList<Role> roles;
+	private ArrayList<Player> playersInScene;
 
 	public Scene(){
-		
+
 	}
 	
-	public Scene(String sceneN, String sceneD, int id, int budget, int shotsR, int totalS, Role[] roleList, Player[] playerList){
+	public Scene(String sceneN, String sceneD, int id, int budget, int shotsR, int totalS){
 		this.sceneName = sceneN;
 		this.sceneDescription = sceneD;
 		this.sceneID = id;
 		this.sceneBudget = budget;
 		this.shotsRemaining = shotsR;
 		this.totalShots = totalS;
-		this.roles = roleList;
-		this.playersInScene = playerList;
 	}
 
 	/*
@@ -35,34 +35,36 @@ public class Scene {
 	 */
 
 	//TODO Implement getOnCardRoles
-	public Role[] getOnCardRoles(){
-		
+	public ArrayList<Role> getOnCardRoles(){
+		// on card roles stored in the 
+
 		// Change return statement
 		return roles;
 	}
 
 	//TODO Implement getOffCardRoles
-	public Role[] getOffCardRoles(){
+	public ArrayList<Role> getOffCardRoles(){
+		// off card roles stored in the board xml data
 
 		// Change return statement
 		return roles;
 	}
 
 	//TODO Implement getPlayersOnCard
-	public Player[] getPlayersOnCard(int roleID){
+	public ArrayList<Player> getPlayersOnCard(int roleID){
 	
 		// Change return statement
 		return playersInScene;
 	}
 
 	//TODO Implement getPlayersOffCard
-	public Player[] getPlayersOffCard(int roleID){
+	public ArrayList<Player> getPlayersOffCard(int roleID){
 
 		// Change return statement
 		return playersInScene;
 	}
 
-	public Player[] getPlayersInScene(int sceneID){
+	public ArrayList<Player> getPlayersInScene(int sceneID){
 		
 		return this.playersInScene;
 	}
