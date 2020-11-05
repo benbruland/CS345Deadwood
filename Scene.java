@@ -24,6 +24,7 @@ public class Scene {
 		this.sceneBudget = budget;
 		this.shotsRemaining = shotsR;
 		this.totalShots = totalS;
+		this.playersInScene = new ArrayList<Player>(); // Initialized as empty list until players join Scene 
 	}
 
 	/*
@@ -34,41 +35,51 @@ public class Scene {
 	 * ====== PUBLIC METHODS ======
 	 */
 
-	//TODO Implement getOnCardRoles
 	public ArrayList<Role> getOnCardRoles(){
-		// on card roles stored in the 
-
-		// Change return statement
-		return roles;
+		// on card roles stored in the scene xml data
+		ArrayList<Role> onCard = new ArrayList<Role>();
+		for (Role rl : roles){
+			if(rl.isOnCardRole) //TODO: figure out how to make this visible
+				onCard.add(rl);
+		}
+		return onCard;
 	}
 
-	//TODO Implement getOffCardRoles
 	public ArrayList<Role> getOffCardRoles(){
 		// off card roles stored in the board xml data
-
-		// Change return statement
-		return roles;
+		ArrayList<Role> offCard = new ArrayList<Role>();
+		for (Role rl : roles){
+			if(!rl.isOnCardRole) //TODO: figure out how to make this visible
+				offCard.add(rl);
+		}
+		return offCard;
 	}
 
-	//TODO Implement getPlayersOnCard
 	public ArrayList<Player> getPlayersOnCard(int roleID){
-	
-		// Change return statement
-		return playersInScene;
+		ArrayList<Player> playersOnCard = new ArrayList<Player>();
+		for (Player plyr : playersInScene){
+			if (plyr.playerRole != null && plyr.playerRole.isOnCardRole == true){ //TODO: figure out how to make this visible
+				playersOnCard.add(plyr);
+			}
+		}
+		return playersOnCard;
 	}
 
-	//TODO Implement getPlayersOffCard
 	public ArrayList<Player> getPlayersOffCard(int roleID){
-
-		// Change return statement
-		return playersInScene;
+		ArrayList<Player> playersOffCard = new ArrayList<Player>();
+		for (Player plyr : playersInScene){
+			if (plyr.playerRole != null && plyr.playerRole.isOnCardRole == false){ //TODO: figure out how to make this visible
+				playersOffCard.add(plyr);
+			}
+		}
+		return playersOffCard;
 	}
 
 	public ArrayList<Player> getPlayersInScene(int sceneID){
-		
 		return this.playersInScene;
 	}
 
+	// Should this method have return type boolean and return true on success and false otherwise?
 	public void removeShotCounter(){
 		this.shotsRemaining -= 1;
 	}
@@ -77,7 +88,7 @@ public class Scene {
 		return this.shotsRemaining;
 	}
 
-	//TODO Implement finishScene
+	//TODO: Implement finishScene
 	public void finishScene(){
 
 	}
