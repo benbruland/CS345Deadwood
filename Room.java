@@ -9,7 +9,9 @@ public class Room {
 	private Room[] adjacentRooms;
 	private Player[] playersInRoom;
 	
-
+	public Room() {
+		
+	}
 	public Room(int id, String name, Scene scene, Room[] roomList, Player[] playerList) {
 		this.roomID = id;
 		this.roomName = name;

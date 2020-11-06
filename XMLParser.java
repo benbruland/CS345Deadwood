@@ -98,9 +98,24 @@ public class XMLParser {
                 deck.add(newCard);
             }
         } catch(Exception e) {
-            System.out.println("XML parse failure");
+            System.out.println("XML parsing exception");
             e.printStackTrace();
         }
         return deck;
+    }
+
+    //TODO: implement readBoardData()
+    public ArrayList<Room> readBoardData() {
+        ArrayList<Room> boardRooms = new ArrayList<>();
+        try {
+            Document boardDoc = getDocFromFile("XML/board.xml");
+            Element boardRoot = boardDoc.getDocumentElement(); 
+            NodeList sceneList = boardRoot.getElementsByTagName("board");
+
+        } catch (Exception e) {
+            System.out.println("XML parsing exception");
+            e.printStackTrace();
+        }
+        return boardRooms;
     }
 }
