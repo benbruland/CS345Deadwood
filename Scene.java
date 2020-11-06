@@ -7,8 +7,8 @@ public class Scene {
 	private int totalShots;
 	
 	/* Non-primitive Attributes */
-	private Card sceneCard;
-	private ArrayList<Role> roles;
+	private Card sceneCard; //unitialized
+	private ArrayList<Role> roles; //unitialized
 	private ArrayList<Player> playersInScene;
 
 	public Scene(){
