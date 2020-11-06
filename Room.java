@@ -1,3 +1,6 @@
+import java.util.ArrayList;
+import java.util.HashMap;
+
 public class Room {
 
 	/* Primitive Attributes */
@@ -5,7 +8,7 @@ public class Room {
 	private String roomName;
 
 	/* Non-primitive Attributes*/
-	private Scene roomScene;	
+	private ArrayList<Scene> roomScenes;	
 	private Room[] adjacentRooms;
 	private Player[] playersInRoom;
 	
