@@ -28,14 +28,59 @@ public class XMLParser {
         } // exception handling
 
     }
-    /*
-        Card Tags:
-            card name="Evil Wears a Hat" img="01.png" budget="4"
-                 scene number="7"
-    */
-    // reads data from XML file and prints data
+
+    
+    private String getAttributeByName(Node n, String attribute) {
+        return n.getAttributes().getNamedItem(attribute).getNodeValue();
+    }
+
+    //Pass this method a role node from the XML Document builder,
+    //creates a role object from the XML and returns it
+    private Role createRole(Node n, boolean onCard, int roleId) {
+        
+        
+        String roleName = getAttributeByName(n, "name");
+        int roleLevel = Integer.parseInt(getAttributeByName(n, "level"));
+        
+        Role newRole = new Role(roleId, roleLevel, roleName, onCard);
+
+        return newRole;
+    }
+
+    //Creates a card by reading XML stored in XML/cards.xml
+    //pass this method an XML node, it returns a Card object
     private Card createCard(Node card) {
-        return null;
+        int sceneID = 0;
+        int roleIDCounter = 0;
+        int budget = Integer.parseInt(getAttributeByName(card, "budget"));
+        String cardName = getAttributeByName(card, "name");
+        boolean rolesOnCard = true;
+        ArrayList<Role> cardRoles = new ArrayList<>();
+        
+        NodeList cardData = card.getChildNodes();
+        int numChildren = cardData.getLength();
+        String sceneType = "scene";
+        String roleType = "part";
+
+        for (int i = 0; i < numChildren; i++) {
+            //Child contains: <scene> <part> <line> and <area> tags
+            Node child = cardData.item(i);
+            String childType = child.getNodeName();
+
+            if (sceneType.equals(childType)) {
+
+                sceneID = Integer.parseInt(getAttributeByName(child, "number"));
+           
+            } else if (roleType.equals(childType)) {
+                //Role id is intended to be an index into the array list cardRoles
+                Role newRole = createRole(child, rolesOnCard, roleIDCounter);
+                roleIDCounter++;
+                cardRoles.add(newRole);
+            }
+        }
+        //public Card(int cardBudget, int cardSceneId, String card, Role[] roles)
+        Card newCard = new Card(budget, sceneID, cardName, cardRoles);
+        return newCard;
     }
 
     public ArrayList<Card> readCardData() {
@@ -50,12 +95,27 @@ public class XMLParser {
             for (int i = 0; i < numCards; i++) {
                 Node card = cards.item(i);
                 Card newCard = createCard(card);
+                deck.add(newCard);
             }
         } catch(Exception e) {
-            System.out.println("XML parse failure");
+            System.out.println("XML parsing exception");
             e.printStackTrace();
         }
-        //TODO: Fill in return value
-        return null;
+        return deck;
+    }
+
+    //TODO: implement readBoardData()
+    public ArrayList<Room> readBoardData() {
+        ArrayList<Room> boardRooms = new ArrayList<>();
+        try {
+            Document boardDoc = getDocFromFile("XML/board.xml");
+            Element boardRoot = boardDoc.getDocumentElement(); 
+            NodeList sceneList = boardRoot.getElementsByTagName("board");
+
+        } catch (Exception e) {
+            System.out.println("XML parsing exception");
+            e.printStackTrace();
+        }
+        return boardRooms;
     }
 }
