@@ -1,29 +1,31 @@
+import java.util.ArrayList;
+
 public class Scene {
 
 	/* Primitive Attributes */
-	private String sceneName, sceneDescription;
-	private int sceneID;
-	private int sceneBudget;
 	private int shotsRemaining;
 	private int totalShots;
 	
 	/* Non-primitive Attributes */
-	private Role[] roles;
-	private Player[] playersInScene;
+	private Card sceneCard; //unitialized
+	private ArrayList<Role> roles; //unitialized
+	private ArrayList<Player> playersInScene;
 
 	public Scene(){
-		
+
 	}
-	
-	public Scene(String sceneN, String sceneD, int id, int budget, int shotsR, int totalS, Role[] roleList, Player[] playerList){
-		this.sceneName = sceneN;
-		this.sceneDescription = sceneD;
-		this.sceneID = id;
-		this.sceneBudget = budget;
+
+	public Scene(int shotsR, int totalS){
 		this.shotsRemaining = shotsR;
 		this.totalShots = totalS;
-		this.roles = roleList;
-		this.playersInScene = playerList;
+		this.playersInScene = new ArrayList<Player>(); // Initialized as empty list until players join Scene 
+	}
+	
+	public Scene(int shotsR, int totalS, Card scene){
+		this.sceneCard = scene;
+		this.shotsRemaining = shotsR;
+		this.totalShots = totalS;
+		this.playersInScene = new ArrayList<Player>(); // Initialized as empty list until players join Scene 
 	}
 
 	/*
@@ -34,39 +36,59 @@ public class Scene {
 	 * ====== PUBLIC METHODS ======
 	 */
 
-	//TODO Implement getOnCardRoles
-	public Role[] getOnCardRoles(){
+	public ArrayList<Role> getOnCardRoles(){
+		// on card roles stored in the scene xml data
+
+		ArrayList<Role> roles = this.sceneCard.getRoles();
+		ArrayList<Role> onCardRoles = new ArrayList<>();
 		
-		// Change return statement
-		return roles;
-	}
-
-	//TODO Implement getOffCardRoles
-	public Role[] getOffCardRoles(){
-
-		// Change return statement
-		return roles;
-	}
-
-	//TODO Implement getPlayersOnCard
-	public Player[] getPlayersOnCard(int roleID){
-	
-		// Change return statement
-		return playersInScene;
-	}
-
-	//TODO Implement getPlayersOffCard
-	public Player[] getPlayersOffCard(int roleID){
-
-		// Change return statement
-		return playersInScene;
-	}
-
-	public Player[] getPlayersInScene(int sceneID){
+		for (Role rl : roles){
+			if(rl.getIsOnCardRole())
+				onCardRoles.add(rl);
+		}
 		
+		return onCardRoles;
+	}
+
+	public ArrayList<Role> getOffCardRoles(){
+		// off card roles stored in the board xml data
+		ArrayList<Role> roles = this.sceneCard.getRoles();
+		ArrayList<Role> offCardRoles = new ArrayList<>();
+		for (Role rl : roles){
+			if(!rl.getIsOnCardRole())
+				offCardRoles.add(rl);
+		}
+		return offCardRoles;
+	}
+
+	public ArrayList<Player> getPlayersOnCard() {
+		
+		ArrayList<Player> playersOnCard = new ArrayList<Player>();
+
+		for (Player plyr : playersInScene){
+			if (plyr.getRole().getIsOnCardRole()) { 
+				playersOnCard.add(plyr);
+			}
+		}
+
+		return playersOnCard;
+	}
+
+	public ArrayList<Player> getPlayersOffCard(int roleID){
+		ArrayList<Player> playersOffCard = new ArrayList<Player>();
+		for (Player plyr : playersInScene){
+			if (!plyr.getRole().getIsOnCardRole()) {
+				playersOffCard.add(plyr);
+			}
+		}
+		return playersOffCard;
+	}
+
+	public ArrayList<Player> getPlayersInScene(int sceneID){
 		return this.playersInScene;
 	}
 
+	// Should this method have return type boolean and return true on success and false otherwise?
 	public void removeShotCounter(){
 		this.shotsRemaining -= 1;
 	}
@@ -75,7 +97,7 @@ public class Scene {
 		return this.shotsRemaining;
 	}
 
-	//TODO Implement finishScene
+	//TODO: Implement finishScene
 	public void finishScene(){
 
 	}

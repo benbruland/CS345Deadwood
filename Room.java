@@ -1,5 +1,4 @@
 import java.util.ArrayList;
-import java.util.HashMap;
 
 public class Room {
 
@@ -8,19 +7,28 @@ public class Room {
 	private String roomName;
 
 	/* Non-primitive Attributes*/
-	private ArrayList<Scene> roomScenes;	
-	private Room[] adjacentRooms;
-	private Player[] playersInRoom;
+	private Scene roomScene;	
+	private Room[] adjacentRooms; // non-ArrayList
+	private ArrayList<Player> playersInRoom;
 	
-	public Room() {
-		
+	/* No argument constructor*/
+	public Room(){
+
 	}
-	public Room(int id, String name, Scene scene, Room[] roomList, Player[] playerList) {
+
+	//TODO: Implement special constructor for Trailer/Casting Office ???
+	public Room(int id, String name){
+		this.roomID = id;
+		this.roomName = name;
+	}
+
+	/* Constructor for basic acting rooms */
+	public Room(int id, String name, Scene scene, Room[] roomList) {
 		this.roomID = id;
 		this.roomName = name;
 		this.roomScene = scene;
 		this.adjacentRooms = roomList;
-		this.playersInRoom = playerList;
+		this.playersInRoom = new ArrayList<Player>();
 	}
 
 	/*
@@ -32,9 +40,7 @@ public class Room {
 	 * ====== PUBLIC METHODS ======
 	 */
 
-	//TODO Implement playersInRoom
-	public Player[] playersInRoom(){
-	
+	public ArrayList<Player> getPlayersInRoom(){
 		return this.playersInRoom;
 	}
 	
@@ -42,13 +48,17 @@ public class Room {
 		return this.roomScene;
 	}
 
-	//TODO Implement addPlayerToRoom
-	public boolean addPlayerToRoom(int playerID){
+	public boolean addPlayerToRoom(Player plyr){ 
+		if(!playersInRoom.contains(plyr)){
+			playersInRoom.add(plyr);
+			return true;
+		}
 		return false;
 	}
 
-	//TODO Implement removePlayerFromRoom
-	public boolean removePlayerFromRoom(int playerID){
-		return false;
+	public boolean removePlayerToRoom(Player plyr){ 
+		/* ArrayList.remove(Object obj) returns true if it finds obj in list and it is removed, else false.
+		    If there are duplicates, removes first occurence of obj and returns true. */
+		return playersInRoom.remove(plyr);
 	}
 }
