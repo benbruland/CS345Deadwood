@@ -17,9 +17,10 @@ public class Room {
 	}
 
 	//TODO: Implement special constructor for Trailer/Casting Office ???
-	// public Room(int id, String name){
-
-	// }
+	public Room(int id, String name){
+		this.roomID = id;
+		this.roomName = name;
+	}
 
 	/* Constructor for basic acting rooms */
 	public Room(int id, String name, Scene scene, Room[] roomList) {

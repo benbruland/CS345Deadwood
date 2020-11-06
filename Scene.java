@@ -3,25 +3,26 @@ import java.util.ArrayList;
 public class Scene {
 
 	/* Primitive Attributes */
-	private String sceneName, sceneDescription;
-	private int sceneID;
-	private int sceneBudget;
 	private int shotsRemaining;
 	private int totalShots;
 	
 	/* Non-primitive Attributes */
+	private Card sceneCard;
 	private ArrayList<Role> roles;
 	private ArrayList<Player> playersInScene;
 
 	public Scene(){
 
 	}
+
+	public Scene(int shotsR, int totalS){
+		this.shotsRemaining = shotsR;
+		this.totalShots = totalS;
+		this.playersInScene = new ArrayList<Player>(); // Initialized as empty list until players join Scene 
+	}
 	
-	public Scene(String sceneN, String sceneD, int id, int budget, int shotsR, int totalS){
-		this.sceneName = sceneN;
-		this.sceneDescription = sceneD;
-		this.sceneID = id;
-		this.sceneBudget = budget;
+	public Scene(int shotsR, int totalS, Card scene){
+		this.sceneCard = scene;
 		this.shotsRemaining = shotsR;
 		this.totalShots = totalS;
 		this.playersInScene = new ArrayList<Player>(); // Initialized as empty list until players join Scene 
