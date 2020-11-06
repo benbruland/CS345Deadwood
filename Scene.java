@@ -38,38 +38,46 @@ public class Scene {
 
 	public ArrayList<Role> getOnCardRoles(){
 		// on card roles stored in the scene xml data
-		ArrayList<Role> onCard = new ArrayList<Role>();
+
+		ArrayList<Role> roles = this.sceneCard.getRoles();
+		ArrayList<Role> onCardRoles = new ArrayList<>();
+		
 		for (Role rl : roles){
-			if(rl.isOnCardRole) //TODO: figure out how to make this visible
-				onCard.add(rl);
+			if(rl.getIsOnCardRole())
+				onCardRoles.add(rl);
 		}
-		return onCard;
+		
+		return onCardRoles;
 	}
 
 	public ArrayList<Role> getOffCardRoles(){
 		// off card roles stored in the board xml data
-		ArrayList<Role> offCard = new ArrayList<Role>();
+		ArrayList<Role> roles = this.sceneCard.getRoles();
+		ArrayList<Role> offCardRoles = new ArrayList<>();
 		for (Role rl : roles){
-			if(!rl.isOnCardRole) //TODO: figure out how to make this visible
-				offCard.add(rl);
+			if(!rl.getIsOnCardRole())
+				offCardRoles.add(rl);
 		}
-		return offCard;
+		return offCardRoles;
 	}
 
-	public ArrayList<Player> getPlayersOnCard(int roleID){
+	public ArrayList<Player> getPlayersOnCard() {
+		
 		ArrayList<Player> playersOnCard = new ArrayList<Player>();
+
 		for (Player plyr : playersInScene){
-			if (plyr.playerRole != null && plyr.playerRole.isOnCardRole == true){ //TODO: figure out how to make this visible
+			if (plyr.getRole().getIsOnCardRole()) { 
 				playersOnCard.add(plyr);
 			}
 		}
+
 		return playersOnCard;
 	}
 
 	public ArrayList<Player> getPlayersOffCard(int roleID){
 		ArrayList<Player> playersOffCard = new ArrayList<Player>();
 		for (Player plyr : playersInScene){
-			if (plyr.playerRole != null && plyr.playerRole.isOnCardRole == false){ //TODO: figure out how to make this visible
+			if (!plyr.getRole().getIsOnCardRole()) {
 				playersOffCard.add(plyr);
 			}
 		}
