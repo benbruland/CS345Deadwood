@@ -11,7 +11,7 @@ public class Scene {
 	private ArrayList<Role> roles; //unitialized
 	private ArrayList<Player> playersInScene;
 
-	public Scene(){
+	public Scene() {
 
 	}
 
