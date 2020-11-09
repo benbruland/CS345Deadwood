@@ -110,8 +110,8 @@ public class XMLParser {
         try {
             Document boardDoc = getDocFromFile("XML/board.xml");
             Element boardRoot = boardDoc.getDocumentElement(); 
-            NodeList sceneList = boardRoot.getElementsByTagName("board");
-
+            NodeList roomList = boardRoot.getElementsByTagName("board");
+            
         } catch (Exception e) {
             System.out.println("XML parsing exception");
             e.printStackTrace();
