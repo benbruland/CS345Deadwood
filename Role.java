@@ -20,8 +20,10 @@ public class Role {
 
     public void printRole() {
         System.out.println("Role name = " + this.roleName);
-        System.out.println("Role level = " + this.roleLevel);
-        System.out.println("Role ID = " + this.roleID);
+        System.out.println("\t * Role level = " + this.roleLevel);
+        System.out.println("\t * Role ID = " + this.roleID);
+        String offCard = this.isOnCardRole ? "yes" : "no";
+        System.out.println("\t * Role is on card role: " + offCard);
     }
 
     public boolean getRoleAvailable() {
