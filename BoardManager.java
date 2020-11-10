@@ -62,7 +62,7 @@ public class BoardManager {
         return null;
     }
 
-    int rollDice(int numFaces) {
+    public int rollDice(int numFaces) {
         return (int) ((Math.random() * (numFaces - 1)) + 1);
     }
 
