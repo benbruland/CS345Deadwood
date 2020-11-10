@@ -4,6 +4,27 @@ import java.util.Random;
 
 public class Board {
 
+	private class UpgradeCost {
+		private int creditCost;
+		private int dollarCost;
+		public UpgradeCost() {
+
+		}
+
+		public UpgradeCost(int credits, int dollars) {
+			this.creditCost = credits;
+			this.dollarCost = dollars;
+		}
+
+		public int getCreditCost() {
+			return this.creditCost;
+		}
+
+		public int getDollarCost() {
+			return this.dollarCost;
+		}
+	}
+
 	/* Private Attributes */
 
 	//This is the card deck
@@ -14,6 +35,8 @@ public class Board {
 
 	//
 	private ArrayList<Player> players;
+	
+	private ArrayList<UpgradeCost> costs;
 	
 	/* Public Attributes*/
 

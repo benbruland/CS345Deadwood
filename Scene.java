@@ -12,7 +12,7 @@ public class Scene {
 	private ArrayList<Player> playersInScene;
 
 	public Scene() {
-
+		
 	}
 
 	public Scene(int shotsR, int totalS){

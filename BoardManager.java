@@ -31,6 +31,13 @@ public class BoardManager {
         for (int i = 0; i < cards.size(); i++) {
             cards.get(i).printCard();
         }
+
+        ArrayList<Room> roomList = parser.readBoardData();
+        
+        for (int i = 0; i < roomList.size(); i++) {
+            roomList.get(i).printRoom();
+        }
+
         System.out.println("Total number of cards: " + cards.size());
     }
 
@@ -39,7 +46,7 @@ public class BoardManager {
     public BoardManager() {
 
     }
-
+    
     /*
         ========= Public Methods ==========
     */
