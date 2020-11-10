@@ -9,8 +9,10 @@ import java.io.File;
 import java.util.ArrayList;
 
 public class XMLParser {
-    // building a document from the XML file
-    // returns a Document object after loading the book.xml file.
+
+    private static String cardDocument = "XML/cards.xml";
+    private static String boardDocument = "XML/board.xml";
+
     public Document getDocFromFile(String filename)
             throws ParserConfigurationException{
         {
@@ -86,7 +88,7 @@ public class XMLParser {
     public ArrayList<Card> readCardData() {
         ArrayList<Card> deck = new ArrayList<>();
         try {
-            Document cardDoc = getDocFromFile("XML/cards.xml");
+            Document cardDoc = getDocFromFile(cardDocument);
             Element rootCard = cardDoc.getDocumentElement();
 
             NodeList cards = rootCard.getElementsByTagName("card");
@@ -165,11 +167,10 @@ public class XMLParser {
     }
 
 
-    //TODO: implement readBoardData()
     public ArrayList<Room> readBoardData() {
         ArrayList<Room> boardRooms = new ArrayList<>();
         try {
-            Document boardDoc = getDocFromFile("XML/board.xml");
+            Document boardDoc = getDocFromFile(boardDocument);
             Element boardRoot = boardDoc.getDocumentElement(); 
             boardRoot.normalize();
             NodeList boardSets = boardRoot.getElementsByTagName("set");
@@ -186,5 +187,21 @@ public class XMLParser {
             e.printStackTrace();
         }
         return boardRooms;
+    }
+
+    public Room readCastingOfficeData() {
+        String roomName;
+        try {
+            Document boardDoc = getDocFromFile(boardDocument);
+            Element boardRoot = boardDoc.getDocumentElement(); 
+            boardRoot.normalize();
+            NodeList boardSets = boardRoot.getElementsByTagName("set");
+            int listSize = boardSets.getLength(); 
+        } catch (Exception e) {
+            System.out.println("XML parsing exception");
+            e.printStackTrace();
+        }
+        //TODO: Fill in return value
+        return null;
     }
 }

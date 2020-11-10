@@ -15,11 +15,15 @@ public class Board {
 	//
 	private ArrayList<Player> players;
 
+	private Room castingOffice;
+	private Room trailers;
+	
+	private ArrayList<Integer> dollarUpgradeCosts;
+	private ArrayList<Integer> creditUpgradeCosts;
 	
 	/* Public Attributes*/
 
     
-	//TODO Implement Board Constructor
     public Board() {
 		this.boardRooms = new ArrayList<Room>();
 		this.boardScenes = new ArrayList<Scene>();
@@ -53,6 +57,14 @@ public class Board {
 		}
 	
 	}
+	
+	public Room getTrailers() {
+		return this.trailers;
+	}
+
+	public Room getCastingOffice() {
+		return this.castingOffice;
+	}
 
 	public ArrayList<Scene> getScenes(){
 		return this.boardScenes;
@@ -77,4 +89,30 @@ public class Board {
 	public void setScenes(ArrayList<Scene> scns) {
 		this.boardScenes= scns;
 	}
+
+	//Assumes that upgrade costs has been filled in
+	public int getCreditUpgradeCost(int targetLevel) {
+		return this.creditUpgradeCosts.get(targetLevel - 1);
+	}
+
+	public int getDollarUpgradeCost(int targetLevel) {
+		return this.dollarUpgradeCosts.get(targetLevel - 1);
+	}
+
+	public void setDollarUpgradeCosts(ArrayList<Integer> upgrades) {
+		this.dollarUpgradeCosts = upgrades;
+	}
+
+	public void setCreditUpgradeCosts(ArrayList<Integer> upgrades) {
+		this.creditUpgradeCosts = upgrades;
+	}
+
+	public void setTrailers(Room trailer) {
+		this.trailers = trailer;
+	}
+
+	public void setCastingOffice(Room casting) {
+		this.castingOffice = casting;
+	}
+
 }

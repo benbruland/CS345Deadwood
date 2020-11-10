@@ -21,7 +21,6 @@ public class Room {
 	public Room() {
 
 	}
-
 	
 	public Room(int id, String name) {
 		this.roomID = id;
