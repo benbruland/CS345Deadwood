@@ -97,14 +97,6 @@ public class Board {
 		return this.dollarUpgradeCosts[targetLevel-1];
 	}
 
-	public void setDollarUpgradeCosts(int[] upgrades) {
-		this.dollarUpgradeCosts = upgrades;
-	}
-
-	public void setCreditUpgradeCosts(int[] upgrades) {
-		this.creditUpgradeCosts = upgrades;
-	}
-
 	public void setTrailers(Room trailer) {
 		this.trailers = trailer;
 	}
