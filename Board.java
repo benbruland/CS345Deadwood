@@ -11,15 +11,17 @@ public class Board {
 	
 	//List of board room objects as parsed from board.xml
 	private ArrayList<Room> boardRooms;
+	
+	// deck of all scene cards to be randomly assigned to scenes.
+	private ArrayList<Card> deck;
 
-	//
 	private ArrayList<Player> players;
 
 	private Room castingOffice;
 	private Room trailers;
 	
-	private ArrayList<Integer> dollarUpgradeCosts;
-	private ArrayList<Integer> creditUpgradeCosts;
+	private int[] dollarUpgradeCosts;
+	private int[] creditUpgradeCosts;
 	
 	/* Public Attributes*/
 
@@ -30,10 +32,13 @@ public class Board {
 		this.players = new ArrayList<Player>();
 	}
 	
-	public Board(ArrayList<Room> rooms, ArrayList<Scene> scenes, ArrayList<Player> plys) {
+	public Board(ArrayList<Room> rooms, ArrayList<Card> cardDeck, int[][] costs, Room casting, Room trailer) {
 		this.boardRooms = rooms;
-		this.boardScenes = scenes;
-		this.players = plys;
+		this.deck = cardDeck;
+		this.dollarUpgradeCosts = costs[0];
+		this.creditUpgradeCosts = costs[1];
+		this.castingOffice = casting;
+		this.trailers = trailer;
 	}
 
 	// Gets a random integer, assumes min integer to be 0
@@ -57,7 +62,51 @@ public class Board {
 		}
 	
 	}
+	public void printRooms() {
+		System.out.println();
+		ArrayList<Room> rooms = this.boardRooms;
+		int listSize = rooms.size();
+		System.out.println("=====================Board Rooms=====================");
+		for (int i = 0; i < listSize; i++) {
+			rooms.get(i).printRoom();
+		}
+		this.castingOffice.printRoom();
+		this.trailers.printRoom();
+		System.out.println("=====================================================");
+    }
+
+    public void printDeck() {
+		System.out.println();
+		ArrayList<Card> cardDeck = this.deck;
+		int listSize = cardDeck.size();
+		System.out.println("=====================Card Deck=====================");
+		for (int i = 0; i < listSize; i++) {
+			cardDeck.get(i).printCard();
+		}
+		System.out.println("===================================================");
+		System.out.println();
+	}
 	
+    public void printCosts() {
+		System.out.println();
+		System.out.println("Dollar Costs: ");
+		for (int i = 0; i < dollarUpgradeCosts.length; i++) {
+			System.out.printf("\t * Level %d costs: %d dollars.\n", i+2, this.dollarUpgradeCosts[i]);
+		}
+
+		System.out.println("Credit Costs: ");
+		for (int i = 0; i < creditUpgradeCosts.length; i++) {
+			System.out.printf("\t * Level %d costs: %d credits.\n", i+2, this.creditUpgradeCosts[i]);
+		}
+		System.out.println();
+	}
+	
+    public void printBoard() {
+		printRooms();
+		printDeck();
+		printCosts();
+    }
+
 	public Room getTrailers() {
 		return this.trailers;
 	}
@@ -92,18 +141,18 @@ public class Board {
 
 	//Assumes that upgrade costs has been filled in
 	public int getCreditUpgradeCost(int targetLevel) {
-		return this.creditUpgradeCosts.get(targetLevel - 1);
+		return this.creditUpgradeCosts[targetLevel - 2];
 	}
 
 	public int getDollarUpgradeCost(int targetLevel) {
-		return this.dollarUpgradeCosts.get(targetLevel - 1);
+		return this.dollarUpgradeCosts[targetLevel - 2];
 	}
 
-	public void setDollarUpgradeCosts(ArrayList<Integer> upgrades) {
+	public void setDollarUpgradeCosts(int[] upgrades) {
 		this.dollarUpgradeCosts = upgrades;
 	}
 
-	public void setCreditUpgradeCosts(ArrayList<Integer> upgrades) {
+	public void setCreditUpgradeCosts(int[] upgrades) {
 		this.creditUpgradeCosts = upgrades;
 	}
 
