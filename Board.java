@@ -17,8 +17,8 @@ public class Board {
 	private Room castingOffice;
 	private Room trailers;
 	
-	private ArrayList<Integer> dollarUpgradeCosts;
-	private ArrayList<Integer> creditUpgradeCosts;
+	private int[] dollarUpgradeCosts = {4, 10, 18, 28, 40}; // changed this from ArrayList to int[] as int[i] is better than 
+	private int[] creditUpgradeCosts = {5, 10, 15, 20, 25}; // .get(i) and both lists are constant 
 	
 	/* Public Attributes*/
 
@@ -89,20 +89,19 @@ public class Board {
 		this.boardScenes= scns;
 	}
 
-	//Assumes that upgrade costs has been filled in
 	public int getCreditUpgradeCost(int targetLevel) {
-		return this.creditUpgradeCosts.get(targetLevel - 1);
+		return this.creditUpgradeCosts[targetLevel-1];
 	}
 
 	public int getDollarUpgradeCost(int targetLevel) {
-		return this.dollarUpgradeCosts.get(targetLevel - 1);
+		return this.dollarUpgradeCosts[targetLevel-1];
 	}
 
-	public void setDollarUpgradeCosts(ArrayList<Integer> upgrades) {
+	public void setDollarUpgradeCosts(int[] upgrades) {
 		this.dollarUpgradeCosts = upgrades;
 	}
 
-	public void setCreditUpgradeCosts(ArrayList<Integer> upgrades) {
+	public void setCreditUpgradeCosts(int[] upgrades) {
 		this.creditUpgradeCosts = upgrades;
 	}
 
