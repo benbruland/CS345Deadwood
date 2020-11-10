@@ -104,14 +104,83 @@ public class XMLParser {
         return deck;
     }
 
+    // Returns an array list of strings which represent the names
+    // of the neighboring rooms to this room object.
+    
+    private ArrayList<String> getRoomNeighbors(Node neighborNode) {
+        ArrayList<String> neighbors = new ArrayList<String>();
+        NodeList neighborList = neighborNode.getChildNodes();
+        int listSize = neighborList.getLength();
+        for (int i = 0; i < listSize; i++) {
+             Node child = neighborList.item(i);
+             String nodeType = child.getNodeName();
+             if (nodeType.equals("neighbor")) {
+                String name = getAttributeByName(child, "name");
+                neighbors.add(name);
+             }
+        }
+        return neighbors;
+    }
+
+    private ArrayList<Role> getRoomOffCardRoles(Node partsNode) {
+        NodeList parts = partsNode.getChildNodes();
+        ArrayList<Role> roomRoles = new ArrayList<Role>();
+        int offCardRoleIDCounter = 0;
+        int listSize = parts.getLength();
+
+        for (int i = 0; i < listSize; i++) {
+            Node child = parts.item(i);
+            String childType = child.getNodeName();
+            if (childType.equals("part")) {
+                roomRoles.add(createRole(child, false, offCardRoleIDCounter));
+                offCardRoleIDCounter++;
+            }
+        }
+        return roomRoles;
+
+    }
+
+    Room createRoom(Node roomNode) {
+        NodeList roomData = roomNode.getChildNodes();
+        String roomName = getAttributeByName(roomNode, "name");
+        ArrayList<String> neighbors = new ArrayList<String>();
+        ArrayList<Role> offCardRoles = new ArrayList<Role>();
+        int listSize = roomData.getLength();
+        
+        for (int i = 0; i < listSize; i++) {
+            Node child = roomData.item(i);
+            String childType = child.getNodeName();
+
+            if (childType.equals("neighbors")) {
+                neighbors = getRoomNeighbors(child);
+            }
+            
+            if (childType.equals("parts")) {
+                offCardRoles = getRoomOffCardRoles(child);
+            }
+        }
+
+        Room newRoom = new Room(0, roomName, null, neighbors, offCardRoles);
+        return newRoom;
+    }
+
+
     //TODO: implement readBoardData()
     public ArrayList<Room> readBoardData() {
         ArrayList<Room> boardRooms = new ArrayList<>();
         try {
             Document boardDoc = getDocFromFile("XML/board.xml");
             Element boardRoot = boardDoc.getDocumentElement(); 
-            NodeList roomList = boardRoot.getElementsByTagName("board");
+            boardRoot.normalize();
+            NodeList boardSets = boardRoot.getElementsByTagName("set");
+            int listSize = boardSets.getLength();
             
+            for (int i = 0; i < listSize; i++) {
+                Node child = boardSets.item(i);
+                Room newRoom = createRoom(child);
+                boardRooms.add(newRoom);
+            }
+
         } catch (Exception e) {
             System.out.println("XML parsing exception");
             e.printStackTrace();
