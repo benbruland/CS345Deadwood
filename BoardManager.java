@@ -37,7 +37,19 @@ public class BoardManager {
         for (int i = 0; i < roomList.size(); i++) {
             roomList.get(i).printRoom();
         }
+        Room castingOffice = parser.readCastingOfficeData();
+        castingOffice.printRoom();
+        Room trailers = parser.readTrailersData();
+        trailers.printRoom();
+        int[][] costs = parser.readUpgradeCosts();
+  
+        for (int j = 0; j < costs[0].length; j++) {
+            System.out.println("Dollar Costs = " + costs[1][j]);
+            System.out.println("Credit costs = " + costs[0][j]);
 
+        }
+           
+        
         System.out.println("Total number of cards: " + cards.size());
     }
 

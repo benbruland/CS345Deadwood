@@ -12,6 +12,7 @@ public class XMLParser {
 
     private static String cardDocument = "XML/cards.xml";
     private static String boardDocument = "XML/board.xml";
+    private static int expectedNumberOfRanks = 5;
 
     public Document getDocFromFile(String filename)
             throws ParserConfigurationException{
@@ -142,9 +143,8 @@ public class XMLParser {
 
     }
 
-    Room createRoom(Node roomNode) {
+    Room createRoom(Node roomNode, String roomName) {
         NodeList roomData = roomNode.getChildNodes();
-        String roomName = getAttributeByName(roomNode, "name");
         ArrayList<String> neighbors = new ArrayList<String>();
         ArrayList<Role> offCardRoles = new ArrayList<Role>();
         int listSize = roomData.getLength();
@@ -178,7 +178,8 @@ public class XMLParser {
             
             for (int i = 0; i < listSize; i++) {
                 Node child = boardSets.item(i);
-                Room newRoom = createRoom(child);
+                String roomName = getAttributeByName(child, "name");
+                Room newRoom = createRoom(child, roomName);
                 boardRooms.add(newRoom);
             }
 
@@ -189,19 +190,69 @@ public class XMLParser {
         return boardRooms;
     }
 
-    public Room readCastingOfficeData() {
-        String roomName;
+    public Room readRoomData(String roomName) {
+        Room room = new Room();
         try {
             Document boardDoc = getDocFromFile(boardDocument);
             Element boardRoot = boardDoc.getDocumentElement(); 
-            boardRoot.normalize();
-            NodeList boardSets = boardRoot.getElementsByTagName("set");
-            int listSize = boardSets.getLength(); 
+            NodeList boardSets = boardRoot.getElementsByTagName(roomName);
+            room = createRoom(boardSets.item(0), roomName);
         } catch (Exception e) {
             System.out.println("XML parsing exception");
             e.printStackTrace();
         }
-        //TODO: Fill in return value
-        return null;
+        return room;
+    }
+    private int[] parseCurrencyCosts(NodeList list, String type) {
+        int[] costs = new int[expectedNumberOfRanks];
+        int costIndex = 0;
+        int listSize = list.getLength();
+
+        for (int i = 0; i < listSize; i++) {
+            Node cost = list.item(i);
+            if (!cost.getNodeName().equals("#text") && getAttributeByName(cost, "currency").equals(type)) {
+                costs[costIndex] = Integer.parseInt(getAttributeByName(cost, "amt"));
+                costIndex++;
+            }
+        }
+        return costs;
+    }
+
+    public int[][] readUpgradeCosts() {
+        int[] creditCosts = new int[expectedNumberOfRanks];
+        int[] dollarCosts = new int[expectedNumberOfRanks];
+
+        try {
+            Document boardDoc = getDocFromFile(boardDocument);
+            Element boardRoot = boardDoc.getDocumentElement(); 
+            NodeList boardSets = boardRoot.getElementsByTagName("office");
+            Node officeRoom = boardSets.item(0);
+            NodeList costs = officeRoom.getChildNodes();
+            int listSize = costs.getLength();
+
+            for (int i = 0; i < listSize; i++) {
+                Node child = costs.item(i);
+                if (child.getNodeName().equals("upgrades")) {
+                    NodeList upgradeCosts = child.getChildNodes();
+                    creditCosts = parseCurrencyCosts(upgradeCosts, "credit");
+                    dollarCosts = parseCurrencyCosts(upgradeCosts, "dollar");
+                }
+            }
+
+        } catch (Exception e) {
+            System.out.println("XML parsing exception");
+            e.printStackTrace();
+        }
+
+        int[][] costMatrix = {creditCosts, dollarCosts};
+        return costMatrix;
+    }
+
+    public Room readCastingOfficeData() {
+       return readRoomData("office");
+    }
+
+    public Room readTrailersData() {
+        return readRoomData("trailer");
     }
 }
