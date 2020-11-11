@@ -1,3 +1,4 @@
+import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.Random; 
 
@@ -61,6 +62,7 @@ public class Board {
 		}
 	
 	}
+	
 	public void printRooms() {
 		System.out.println();
 		ArrayList<Room> rooms = this.boardRooms;
@@ -138,6 +140,7 @@ public class Board {
 		this.boardScenes= scns;
 	}
 
+	//Assumes that upgrade costs has been filled in
 	public int getCreditUpgradeCost(int targetLevel) {
 		return this.creditUpgradeCosts[targetLevel - 2];
 	}

@@ -18,41 +18,6 @@ public class BoardManager {
     private Board gameBoard;
     private Player activePlayer;
 
-    
-    public static void main(String[] args) {
-        Board b = new Board();
-        BoardManager bm = new BoardManager();
-        Player p = new Player();
-        Role r = new Role();
-        Room rm  = new Room();
-        Scene s = new Scene();
-        XMLParser parser = new XMLParser();
-        ArrayList<Card> cards = parser.readCardData();
-        for (int i = 0; i < cards.size(); i++) {
-            cards.get(i).printCard();
-        }
-
-        ArrayList<Room> roomList = parser.readBoardData();
-        
-        for (int i = 0; i < roomList.size(); i++) {
-            roomList.get(i).printRoom();
-        }
-        Room castingOffice = parser.readCastingOfficeData();
-        castingOffice.printRoom();
-        Room trailers = parser.readTrailersData();
-        trailers.printRoom();
-        int[][] costs = parser.readUpgradeCosts();
-  
-        for (int j = 0; j < costs[0].length; j++) {
-            System.out.println("Dollar Costs = " + costs[1][j]);
-            System.out.println("Credit costs = " + costs[0][j]);
-
-        }
-           
-        
-        System.out.println("Total number of cards: " + cards.size());
-    }
-
 
     //TODO Implement Constructors
     public BoardManager() {
@@ -62,7 +27,36 @@ public class BoardManager {
     /*
         ========= Public Methods ==========
     */
+   
+    private Player makeInitialPlayer(int numPlayers, int playerID) {
+        Player newPlayer = new Player();
 
+        switch(numPlayers) {
+            case 5:
+                newPlayer.setPlayerCredits(2);
+            case 6:
+                newPlayer.setPlayerCredits(4);
+            case 7:
+        }
+        return newPlayer;
+    }
+
+    public void initBoard(int numPlayers) {
+        XMLParser parser = new XMLParser();
+        this.gameBoard = parser.parseBoard();
+        Board board = this.gameBoard;
+
+        ArrayList<Player> players;
+        
+        for (int i = 0; i < numPlayers; i++) {
+            
+        }
+
+    }
+
+    public Player getActivePlayer() {
+        return this.activePlayer;
+    }
 
     //TODO Implement CycleGameDay()
     public void cycleGameDay() {
@@ -74,7 +68,7 @@ public class BoardManager {
         return null;
     }
 
-    public int rollDice(int numFaces) {
+    int rollDice(int numFaces) {
         return (int) ((Math.random() * (numFaces - 1)) + 1);
     }
 
@@ -88,8 +82,14 @@ public class BoardManager {
 
     }
 
+
+    public void setActivePlayer(Player ply) {
+        this.activePlayer = ply;
+    }
+
     //TODO Implement DoPlayerTurn
     public void doPlayerTurn(Player ply) {
-
+        
     }
+
 }
