@@ -14,10 +14,14 @@ public class Player {
     private Role playerRole;
     private Card playerCard;
     private Room playerRoom;
-    // private Board boardRef TODO: Need a board ref to use .getTrailers() & .getCastingOffice()
 
-    /* No args constructor, for case where 4 or less players */
+    /* No args constructor */
     public Player() {
+
+    }
+
+    /* Constructor for case where 4 or less players */
+    public Player(Room trailer) {
         this.playerRank = 1;
         this.playerCredits = 0;
         this.playerDollars = 0;
@@ -26,11 +30,11 @@ public class Player {
         this.playerInRole = false;
         this.playerRole = null;
         this.playerCard = null;
-        //this.playerRoom = Trailer; TODO: change Trailer to proper way of referencing Trailer Room
+        this.playerRoom = trailer;
     }
 
     /* 5 or 6 player case, set credits to passed in param */ 
-    public Player(int credits) {
+    public Player(Room trailer, int credits) {
         this.playerRank = 1;
         this.playerCredits = credits;
         this.playerDollars = 0;
@@ -39,11 +43,11 @@ public class Player {
         this.playerInRole = false;
         this.playerRole = null;
         this.playerCard = null;
-        //this.playerRoom = getTrailers(); TODO: need Board object ref
+        this.playerRoom = trailer;
     }
 
     /* 7 or 8 player case, set rank and credits to passed in params */ 
-    public Player(int credits, int rank) {
+    public Player(Room trailer, int credits, int rank) {
         this.playerRank = rank;
         this.playerCredits = credits;
         this.playerDollars = 0;
@@ -52,21 +56,20 @@ public class Player {
         this.playerInRole = false;
         this.playerRole = null;
         this.playerCard = null;
-        //this.playerRoom = getTrailers(); TODO: need Board object ref
+        this.playerRoom = trailer;
     }
 
     /*
         ======== PRIVATE METHODS ========
      */
 
-    // TODO Implement Upgrade()
-    private boolean upgrade(int selection){
-         if(this.playerRoom == this.playerCard.getCastingOffice()){ // TODO: Add board ref? 
+    private boolean upgrade(int selection, int[] creditCosts, int[] dollarCosts){
+         if(this.playerRoom.getRoomName().equals("castingOffice")){ 
             if(selection >= 2 && selection <= 6){  
-                if(this.getPlayerCredits() >= getCreditUpgradeCost(selection) && this.getPlayerDollars() >= getDollarUpgradeCost(selection)){ // TODO: Add board ref? 
+                if(this.playerRank < selection-1 && this.playerCredits >= creditCosts[selection-1] && this.playerDollars >= dollarCosts[selection-1]){ 
                     this.playerRank = selection;
-                    this.setPlayerCredits(this.getPlayerCredits()-getCreditUpgradeCost(selection));
-                    this.setPlayerDollars(this.getPlayerDollars()-getDollarUpgradeCost(selection));
+                    this.setPlayerCredits(this.playerCredits-creditCosts[selection-1]);
+                    this.setPlayerDollars(this.playerDollars-dollarCosts[selection-1]);
                     return true; 
                 }
                 else{
@@ -85,7 +88,6 @@ public class Player {
         }
     }
 
-    // TODO Implement Rehearse()
     private boolean rehearse() {
         if(playerInRole && (this.rehearseBonus < this.playerCard.getBudget() - 1)){
             this.rehearseBonus += 1;
@@ -107,7 +109,6 @@ public class Player {
 
     }
 
-    // TODO Implement ChooseRole()
     private boolean chooseRole(int id) {
         if(!this.playerInRole){
             ArrayList<Role> roleList = this.playerCard.getRoles();
