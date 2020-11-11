@@ -12,6 +12,7 @@ public class XMLParser {
 
     private static String cardDocument = "XML/cards.xml";
     private static String boardDocument = "XML/board.xml";
+    private static int expectedNumberOfRanks = 5;
 
     public Document getDocFromFile(String filename)
             throws ParserConfigurationException{
@@ -85,12 +86,11 @@ public class XMLParser {
         return newCard;
     }
 
-    public ArrayList<Card> readCardData() {
+    public ArrayList<Card> readCardData(Document cardDoc) {
         ArrayList<Card> deck = new ArrayList<>();
         try {
-            Document cardDoc = getDocFromFile(cardDocument);
-            Element rootCard = cardDoc.getDocumentElement();
 
+            Element rootCard = cardDoc.getDocumentElement();
             NodeList cards = rootCard.getElementsByTagName("card");
             int numCards = cards.getLength();
             
@@ -124,6 +124,8 @@ public class XMLParser {
         return neighbors;
     }
 
+    // Pass in a <parts> tag to this function to parse
+    // off card roles from board.xml
     private ArrayList<Role> getRoomOffCardRoles(Node partsNode) {
         NodeList parts = partsNode.getChildNodes();
         ArrayList<Role> roomRoles = new ArrayList<Role>();
@@ -142,11 +144,14 @@ public class XMLParser {
 
     }
 
-    Room createRoom(Node roomNode) {
+    // pass in a <set> object to parse a Room object from
+    // board.xml
+    Room createRoom(Node roomNode, String roomName) {
         NodeList roomData = roomNode.getChildNodes();
-        String roomName = getAttributeByName(roomNode, "name");
         ArrayList<String> neighbors = new ArrayList<String>();
         ArrayList<Role> offCardRoles = new ArrayList<Role>();
+        int numTakes = 1;
+        boolean hasTakes = false;
         int listSize = roomData.getLength();
         
         for (int i = 0; i < listSize; i++) {
@@ -160,25 +165,61 @@ public class XMLParser {
             if (childType.equals("parts")) {
                 offCardRoles = getRoomOffCardRoles(child);
             }
+
+            if (childType.equals("takes")) {
+                hasTakes = true;
+                NodeList takes = child.getChildNodes();
+                for (int j = 0; j < takes.getLength(); j++) {
+                    if  (takes.item(j).getNodeName() != "#text") {
+                        numTakes++;
+                    }
+                }
+                
+            }
         }
 
-        Room newRoom = new Room(0, roomName, null, neighbors, offCardRoles);
+        //This is for the special case of trailers and office which have no takes, but it
+        numTakes = hasTakes ? numTakes : 0;
+        
+        Room newRoom = new Room(0, roomName, null, neighbors, offCardRoles, numTakes);
         return newRoom;
     }
 
-
-    public ArrayList<Room> readBoardData() {
-        ArrayList<Room> boardRooms = new ArrayList<>();
+    // Creates and fills room objects from
+    public Board parseBoard() {
+        ArrayList<Card> deck = new ArrayList<Card>();
+        ArrayList<Room> boardRooms = new ArrayList<Room>();;
+        Room castingOffice = new Room();
+        Room trailers = new Room();
+        int[][] costs = new int[expectedNumberOfRanks][expectedNumberOfRanks];
         try {
             Document boardDoc = getDocFromFile(boardDocument);
+            Document cardDoc = getDocFromFile(cardDocument);
+            deck = readCardData(cardDoc);
+            boardRooms = createBoardRooms(boardDoc);
+            castingOffice = readRoomData(boardDoc, "office");
+            trailers = readRoomData(boardDoc, "trailer");
+            costs = readUpgradeCosts(boardDoc);
+            
+        } catch(Exception e) {
+            System.out.println("XML parsing exception");
+            e.printStackTrace();
+        }
+        Board gameBoard = new Board(boardRooms, deck, costs, castingOffice, trailers);        
+        return gameBoard;
+    }
+
+    public ArrayList<Room> createBoardRooms(Document boardDoc) {
+        ArrayList<Room> boardRooms = new ArrayList<>();
+        try {
             Element boardRoot = boardDoc.getDocumentElement(); 
-            boardRoot.normalize();
             NodeList boardSets = boardRoot.getElementsByTagName("set");
             int listSize = boardSets.getLength();
             
             for (int i = 0; i < listSize; i++) {
                 Node child = boardSets.item(i);
-                Room newRoom = createRoom(child);
+                String roomName = getAttributeByName(child, "name");
+                Room newRoom = createRoom(child, roomName);
                 boardRooms.add(newRoom);
             }
 
@@ -189,19 +230,68 @@ public class XMLParser {
         return boardRooms;
     }
 
-    public Room readCastingOfficeData() {
-        String roomName;
+    public Room readRoomData(Document boardDoc, String roomName) {
+        Room room = new Room();
         try {
-            Document boardDoc = getDocFromFile(boardDocument);
             Element boardRoot = boardDoc.getDocumentElement(); 
-            boardRoot.normalize();
-            NodeList boardSets = boardRoot.getElementsByTagName("set");
-            int listSize = boardSets.getLength(); 
+            NodeList boardSets = boardRoot.getElementsByTagName(roomName);
+            room = createRoom(boardSets.item(0), roomName);
         } catch (Exception e) {
             System.out.println("XML parsing exception");
             e.printStackTrace();
         }
-        //TODO: Fill in return value
-        return null;
+        return room;
+    }
+
+    private int[] parseCurrencyCosts(NodeList list, String type) {
+        int[] costs = new int[expectedNumberOfRanks];
+        int costIndex = 0;
+        int listSize = list.getLength();
+
+        for (int i = 0; i < listSize; i++) {
+            Node cost = list.item(i);
+            if (!cost.getNodeName().equals("#text") && getAttributeByName(cost, "currency").equals(type)) {
+                costs[costIndex] = Integer.parseInt(getAttributeByName(cost, "amt"));
+                costIndex++;
+            }
+        }
+        return costs;
+    }
+
+    public int[][] readUpgradeCosts(Document boardDoc) {
+        int[] creditCosts = new int[expectedNumberOfRanks];
+        int[] dollarCosts = new int[expectedNumberOfRanks];
+
+        try {
+            Element boardRoot = boardDoc.getDocumentElement(); 
+            NodeList boardSets = boardRoot.getElementsByTagName("office");
+            Node officeRoom = boardSets.item(0);
+            NodeList costs = officeRoom.getChildNodes();
+            int listSize = costs.getLength();
+
+            for (int i = 0; i < listSize; i++) {
+                Node child = costs.item(i);
+                if (child.getNodeName().equals("upgrades")) {
+                    NodeList upgradeCosts = child.getChildNodes();
+                    creditCosts = parseCurrencyCosts(upgradeCosts, "credit");
+                    dollarCosts = parseCurrencyCosts(upgradeCosts, "dollar");
+                }
+            }
+
+        } catch (Exception e) {
+            System.out.println("XML parsing exception");
+            e.printStackTrace();
+        }
+
+        int[][] costMatrix = {creditCosts, dollarCosts};
+        return costMatrix;
+    }
+
+    public Room readCastingOfficeData(Document boardDoc) {
+       return readRoomData(boardDoc, "office");
+    }
+
+    public Room readTrailersData(Document boardDoc) {
+        return readRoomData(boardDoc, "trailer");
     }
 }

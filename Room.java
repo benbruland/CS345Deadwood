@@ -4,7 +4,7 @@ public class Room {
 
 	/* Primitive Attributes */
 	private int roomID;
-
+	private int numTakes;
 	private String roomName;
 
 	/* Non-primitive Attributes*/
@@ -28,12 +28,13 @@ public class Room {
 	}
 
 	/* Constructor for basic acting rooms */
-	public Room(int id, String name, Scene scene, ArrayList<String> roomList, ArrayList<Role> offCards) {
+	public Room(int id, String name, Scene scene, ArrayList<String> roomList, ArrayList<Role> offCards, int takes) {
 		this.roomID = id;
 		this.roomName = name;
 		this.roomScene = scene;
 		this.neighbors = roomList;
 		this.offCardRoles = offCards;
+		this.numTakes = takes;
 		this.playersInRoom = new ArrayList<Player>();
 	}
 
@@ -51,6 +52,7 @@ public class Room {
 		
 		System.out.println("Room Name: " + this.roomName);
 		System.out.println("Room ID: " + this.roomID);
+		System.out.println("Num Takes : " + this.numTakes);
 		System.out.println("Room Off Card Roles: ");
 		
 		int listSize = this.offCardRoles.size();
@@ -75,6 +77,11 @@ public class Room {
 		return this.roomID;
 	}
 
+	public int getNumTakes() {
+		return this.numTakes;
+	}
+
+
 	public String getRoomName() {
 		return this.roomName;
 	}
@@ -89,6 +96,10 @@ public class Room {
 
 	 public ArrayList<Player> getPlayersInRoom(){
 		return this.playersInRoom;
+	}
+	
+	public void setNumTakes(int takes) {
+		this.numTakes = takes;
 	}
 
 	public void setOffCardRoles(ArrayList<Role> offCard) {
