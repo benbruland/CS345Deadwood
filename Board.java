@@ -106,8 +106,12 @@ public class Board {
 		printRooms();
 		printDeck();
 		printCosts();
-    }
-
+	}
+	
+	public ArrayList<Card> getDeck() {
+		return this.deck;
+	}
+	
 	public Room getTrailers() {
 		return this.trailers;
 	}
@@ -163,6 +167,10 @@ public class Board {
 
 	public void setCastingOffice(Room casting) {
 		this.castingOffice = casting;
+	}
+
+	public void setDeck(ArrayList<Card> cards) {
+		this.deck = cards;
 	}
 
 }

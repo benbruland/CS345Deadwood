@@ -1,11 +1,3 @@
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.ParserConfigurationException;
-import org.w3c.dom.Document;
-import org.w3c.dom.NodeList;
-import org.w3c.dom.Node;
-import org.w3c.dom.Element;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -47,6 +39,7 @@ public class BoardManager {
     }
 
     private Player makeInitialPlayer(int numPlayers, int playerID) {
+        assert playerID >= 0 && playerID < numPlayers : "playerID must represent a valid index into players array.";
         Player newPlayer = new Player();
 
         switch(numPlayers) {
@@ -64,7 +57,7 @@ public class BoardManager {
         return newPlayer;
     }
     
-    public void initBoard(int numPlayers) {
+    private void initBoard(int numPlayers) {
         XMLParser parser = new XMLParser();
         this.gameBoard = parser.parseBoard();
         Board board = this.gameBoard;
@@ -72,7 +65,7 @@ public class BoardManager {
         ArrayList<Player> players = new ArrayList<Player>();
         
         for (int i = 0; i < numPlayers; i++) {
-            Player newPlayer = makeInitialPlayer(numPlayers, i + 1);
+            Player newPlayer = makeInitialPlayer(numPlayers, i);
             players.add(newPlayer);
         }
         
@@ -91,6 +84,7 @@ public class BoardManager {
     }
 
     //TODO Implement ScoreGame()
+    // Should return the winner of the game's player object.
     public Player scoreGame() {
         return null;
     }
@@ -128,4 +122,42 @@ public class BoardManager {
         
     }
 
+    public Board getBoard() {
+        return this.gameBoard;
+    }
+
+    //This function is only supposed to be called once per game.
+    //It shuffles the deck of 40 cards into a random order
+    public ArrayList<Card> shuffleDeck(ArrayList<Card> deck) {
+        ArrayList<Card> shuffledDeck = new ArrayList<Card>();
+        shuffledDeck.addAll(deck);
+
+        int numCards = deck.size();
+		
+		for (int i = 0; i < numCards; i++) {
+			int randItem = randInt(0, numCards-1);
+			Card temp = shuffledDeck.get(i);	
+			shuffledDeck.set(i, shuffledDeck.get(randItem)); 
+			shuffledDeck.set(randItem, temp);
+        }
+
+        for (int i = 0; i < deck.size(); i++) {
+            assert shuffledDeck.contains(deck.get(i)) : "Deck missing a card after shuffling";
+            assert deck.contains(shuffledDeck.get(i)) : "Deck missing a card after shuffling";
+        }
+
+        assert shuffledDeck.size() == deck.size() : "Elements in deck have gone missing after shuffle";
+        
+        this.gameBoard.setDeck(shuffledDeck);
+        
+        return shuffledDeck;
+
+    }
+
+    //TODO implement createRandomScenes
+    public ArrayList<Scene> createRandomScenes() {
+
+        //TODO: Fill out return val
+        return null;
+    }
 }
