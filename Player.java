@@ -35,6 +35,7 @@ public class Player {
 
     /* 5 or 6 player case, set credits to passed in param */ 
     public Player(Room trailer, int credits) {
+        assert credits >= 0 : "Credits may not be negative";
         this.playerRank = 1;
         this.playerCredits = credits;
         this.playerDollars = 0;
@@ -48,6 +49,8 @@ public class Player {
 
     /* 7 or 8 player case, set rank and credits to passed in params */ 
     public Player(Room trailer, int credits, int rank) {
+        assert credits >= 0 : "credits may not be negative";
+        assert rank >= 1 && rank <= 6 : "Invalid rank, ranks must be between 1 and 6";
         this.playerRank = rank;
         this.playerCredits = credits;
         this.playerDollars = 0;
@@ -155,6 +158,15 @@ public class Player {
 
     public int getPlayerCredits() {
         return this.playerCredits;
+    }
+
+    public void setRank(int rank) {
+        assert rank >= 1 && rank <= 6 : "Invalid rank, ranks must be between 1 and 6";
+        this.playerRank = rank;
+    }
+
+    public void setPlayerRoom(Room room) {
+        this.playerRoom = room;
     }
 
     // TODO Implement AddRehearsalBonus()
