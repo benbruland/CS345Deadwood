@@ -4,7 +4,6 @@ public class Scene {
 
 	/* Primitive Attributes */
 	private int shotsRemaining;
-	private int totalShots;
 	
 	/* Non-primitive Attributes */
 	private Card sceneCard;
@@ -15,16 +14,14 @@ public class Scene {
 		
 	}
 
-	public Scene(int shotsR, int totalS){
+	public Scene(int shotsR){
 		this.shotsRemaining = shotsR;
-		this.totalShots = totalS;
 		this.playersInScene = new ArrayList<Player>(); // Initialized as empty list until players join Scene 
 	}
 	
 	public Scene(int shotsR, int totalS, Card scene){
 		this.sceneCard = scene;
 		this.shotsRemaining = shotsR;
-		this.totalShots = totalS;
 		this.playersInScene = new ArrayList<Player>(); // Initialized as empty list until players join Scene 
 	}
 
