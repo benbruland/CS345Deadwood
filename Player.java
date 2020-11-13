@@ -19,13 +19,12 @@ public class Player {
     private Card playerCard;
     private Room playerRoom;
 
-    /* No args constructor */
+    /* Player constructor,  custom game settings set in BoardManager.java 
+     *       - Taken care of:
+     *          - playerName, playerRoom, playerCard
+     * 
+     */ 
     public Player() {
-
-    }
-
-    /* Constructor for case where 4 or less players */
-    public Player(Room trailer, String nm) {
         this.playerRank = 1;
         this.playerCredits = 0;
         this.playerDollars = 0;
@@ -34,39 +33,6 @@ public class Player {
         this.playerInRole = false;
         this.playerRole = null;
         this.playerCard = null;
-        this.playerRoom = trailer;
-        this.playerName = nm;
-    }
-
-    /* 5 or 6 player case, set credits to passed in param */ 
-    public Player(Room trailer, String nm, int credits) {
-        assert credits >= 0 : "Credits may not be negative";
-        this.playerRank = 1;
-        this.playerCredits = credits;
-        this.playerDollars = 0;
-        this.rehearseBonus = 0;
-        this.playerID = ++playerCounter;
-        this.playerInRole = false;
-        this.playerRole = null;
-        this.playerCard = null;
-        this.playerRoom = trailer;
-        this.playerName = nm;
-    }
-
-    /* 7 or 8 player case, set rank and credits to passed in params */ 
-    public Player(Room trailer, String nm, int credits, int rank) {
-        assert credits >= 0 : "credits may not be negative";
-        assert rank >= 1 && rank <= 6 : "Invalid rank, ranks must be between 1 and 6";
-        this.playerRank = rank;
-        this.playerCredits = credits;
-        this.playerDollars = 0;
-        this.rehearseBonus = 0;
-        this.playerID = ++playerCounter;
-        this.playerInRole = false;
-        this.playerRole = null;
-        this.playerCard = null;
-        this.playerRoom = trailer;
-        this.playerName = nm;
     }
 
     /*
@@ -213,6 +179,10 @@ public class Player {
     public void setRank(int rank) {
         assert rank >= 1 && rank <= 6 : "Invalid rank, ranks must be between 1 and 6";
         this.playerRank = rank;
+    }
+
+    public void setName(String nm){
+        this.playerName = nm;
     }
 
     public void setPlayerRoom(Room room) {

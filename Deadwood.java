@@ -52,7 +52,10 @@ public class Deadwood {
         ArrayList<String> playerNames = collectPlayerNames();
         int numberOfPlayers = playerNames.size();
         BoardManager manager = new BoardManager(numberOfPlayers);
-        ArrayList<Player> plys = manager.getBoard().getPlayers();
+        ArrayList<Player> plyrs = manager.getBoard().getPlayers();
+        for(int i = 0; i < numberOfPlayers; i++){
+            plyrs.get(i).setName(playerNames.get(i));
+        }
         ArrayList<Card> deck = manager.getDeck();
         manager.shuffleDeck(deck);
         
