@@ -2,6 +2,8 @@ import java.util.ArrayList;
 
 public class Player {
 
+    static int playerCounter = 0;
+
     /* Primitive Attributes */
     private int playerRank;
     private int playerCredits;
@@ -26,7 +28,7 @@ public class Player {
         this.playerCredits = 0;
         this.playerDollars = 0;
         this.rehearseBonus = 0;
-        //this.playerID = ; TODO: Not sure how to initialize playerID
+        this.playerID = ++playerCounter;
         this.playerInRole = false;
         this.playerRole = null;
         this.playerCard = null;
@@ -40,7 +42,7 @@ public class Player {
         this.playerCredits = credits;
         this.playerDollars = 0;
         this.rehearseBonus = 0;
-        //this.playerID = ; TODO: Not sure how to initialize playerID
+        this.playerID = ++playerCounter;
         this.playerInRole = false;
         this.playerRole = null;
         this.playerCard = null;
@@ -55,7 +57,7 @@ public class Player {
         this.playerCredits = credits;
         this.playerDollars = 0;
         this.rehearseBonus = 0;
-        //this.playerID = ; TODO: Not sure how to initialize playerID
+        this.playerID = ++playerCounter;
         this.playerInRole = false;
         this.playerRole = null;
         this.playerCard = null;
