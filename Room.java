@@ -97,7 +97,7 @@ public class Room {
 		return this.neighbors;
 	}
 
-	 public ArrayList<Player> getPlayersInRoom(){
+	 public ArrayList<Player> getPlayersInRoom() {
 		return this.playersInRoom;
 	}
 	
@@ -113,7 +113,7 @@ public class Room {
 		this.neighbors = neighboringRooms;
 	}
 
-	public Scene getRoomScene(){
+	public Scene getRoomScene() {
 		return this.roomScene;
 	}
 
@@ -121,17 +121,18 @@ public class Room {
 		this.roomScene = s;
 	}
 
-	public boolean addPlayerToRoom(Player plyr){ 
-		if(!playersInRoom.contains(plyr)){
+	public boolean addPlayerToRoom(Player plyr) { 
+		if(!playersInRoom.contains(plyr)) {
+			plyr.setPlayerRoom(this);
 			playersInRoom.add(plyr);
 			return true;
 		}
 		return false;
 	}
 
-	public boolean removePlayerToRoom(Player plyr){ 
+	public boolean removePlayerFromRoom(Player plyr) { 
 		/* ArrayList.remove(Object obj) returns true if it finds obj in list and it is removed, else false.
-		    If there are duplicates, removes first occurence of obj and returns true. */
+			If there are duplicates, removes first occurence of obj and returns true. */
 		return playersInRoom.remove(plyr);
 	}
 
