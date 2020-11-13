@@ -185,6 +185,10 @@ public class Player {
         return this.playerInRole;
     }
 
+    public int getPlayerRank(){
+        return this.playerRank;
+    }
+
     public void setPlayerInRole(boolean tof) {
         this.playerInRole = tof;
         return;
