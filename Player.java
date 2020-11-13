@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Random;
 
 public class Player {
 
@@ -11,6 +12,7 @@ public class Player {
     private int rehearseBonus;
     private int playerID;
     private boolean playerInRole;
+    private String playerName;
 
     /* Non-Primitive Attributes */
     private Role playerRole;
@@ -23,7 +25,7 @@ public class Player {
     }
 
     /* Constructor for case where 4 or less players */
-    public Player(Room trailer) {
+    public Player(Room trailer, String nm) {
         this.playerRank = 1;
         this.playerCredits = 0;
         this.playerDollars = 0;
@@ -33,10 +35,11 @@ public class Player {
         this.playerRole = null;
         this.playerCard = null;
         this.playerRoom = trailer;
+        this.playerName = nm;
     }
 
     /* 5 or 6 player case, set credits to passed in param */ 
-    public Player(Room trailer, int credits) {
+    public Player(Room trailer, String nm, int credits) {
         assert credits >= 0 : "Credits may not be negative";
         this.playerRank = 1;
         this.playerCredits = credits;
@@ -47,10 +50,11 @@ public class Player {
         this.playerRole = null;
         this.playerCard = null;
         this.playerRoom = trailer;
+        this.playerName = nm;
     }
 
     /* 7 or 8 player case, set rank and credits to passed in params */ 
-    public Player(Room trailer, int credits, int rank) {
+    public Player(Room trailer, String nm, int credits, int rank) {
         assert credits >= 0 : "credits may not be negative";
         assert rank >= 1 && rank <= 6 : "Invalid rank, ranks must be between 1 and 6";
         this.playerRank = rank;
@@ -62,6 +66,7 @@ public class Player {
         this.playerRole = null;
         this.playerCard = null;
         this.playerRoom = trailer;
+        this.playerName = nm;
     }
 
     /*
@@ -104,13 +109,58 @@ public class Player {
         }
     }
 
-    // TODO Implement Move()
-    private boolean move() {
-        return false;
+    private boolean move(Room desiredRoom) {
+        ArrayList<String> adjRooms = playerRoom.getNeighbors();
+        boolean validRoom = false;
+        if(adjRooms.contains(desiredRoom.getRoomName())){
+            validRoom = true;
+        }
+        if(validRoom){
+            this.playerRoom = desiredRoom; // TODO: edit player card / scene?  
+            return true;
+        }
+        else{
+            return false;
+        }
     }
 
     // TODO Discuss purpose of work()
-    private void work() {
+    private void actRole() {
+        if(this.playerInRole){
+            int playerRoll = this.rollDice(6) + this.addRehearsalBonus();
+            if(this.playerRole.getIsOnCardRole()){  // on card role
+                if (playerRoll > this.playerCard.getBudget()){
+                    // Success
+                    this.playerCredits += 2;
+                    this.playerRoom.getRoomScene().removeShotCounter();
+                    if(this.playerRoom.getRoomScene().getShotCount()  == 0){
+                        this.playerRoom.getRoomScene().finishScene();
+                        return;
+                    }
+                }
+                else {
+                    // Failure
+                    return;
+                }
+            }
+            else {                                  // off card role
+                if (playerRoll > this.playerCard.getBudget()){
+                    // Success
+                    this.playerCredits += 1;
+                    this.playerCredits += 1;
+                    this.playerRoom.getRoomScene().removeShotCounter();
+                    if(this.playerRoom.getRoomScene().getShotCount()  == 0){
+                        this.playerRoom.getRoomScene().finishScene();
+                        return;
+                    }
+                }
+                else {
+                    // Failure
+                    this.playerDollars += 1;
+                    return;
+                }
+            }
+        }
 
     }
 
@@ -136,6 +186,14 @@ public class Player {
                 *staying on the Scene, or do you have to stay on Role until Scene is wrapped? */
         System.out.println("Player currently in Role, cannot take another on Role while in Role.");
         return false;
+    }
+
+    private int randInt(int min, int max) {
+
+        Random randGen = new Random();
+        int randomNum = randGen.nextInt((max - min) + 1) + min;
+    
+        return randomNum;
     }
 
     /*
@@ -171,8 +229,15 @@ public class Player {
         this.playerRoom = room;
     }
 
-    // TODO Implement AddRehearsalBonus()
-    public void addRehearsalBonus() {
+    public void setPlayerCard(Card crd){
+        this.playerCard = crd;
+    }
 
+    public int rollDice(int numFaces) {
+        return randInt(1, numFaces);
+    }
+
+    public int addRehearsalBonus() {
+        return this.rehearseBonus;
     }
 }
