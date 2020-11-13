@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Random;
 
 public class BoardManager {
@@ -108,14 +109,68 @@ public class BoardManager {
         return randomNum;
     }
 
-    //TODO Implement PayBonuses()
     public void payBonuses(Scene sceneToPayout) {
+        ArrayList<Integer> dieRolls = new ArrayList<Integer>();
+			for(int i = 0; i < this.activePlayer.getPlayerCard().getBudget(); i++){
+				dieRolls.add(this.activePlayer.rollDice(6));
+			}
+			Collections.sort(dieRolls);
+			int topRolePayout = 0;
+			int middleRolePayout = 0;
+			int bottomRolePayout = 0;
+			int j = 0;
 
+			/* Loop collecting on card bonuses into top, middle, and bottom */
+			for(int i = dieRolls.size() - 1; i >= 0; i--){
+				j++;
+				if(j == 1){
+					topRolePayout += dieRolls.get(i);
+				}
+				else if (j == 2){
+					middleRolePayout += dieRolls.get(i);
+				}
+				else{
+					bottomRolePayout += dieRolls.get(i);
+					j = 0;
+				}
+			}
+
+			/* Giving bonuses to on card players */
+			for(Player plyr : this.activePlayer.getPlayerRoom().getRoomScene().getPlayersOnCard()){
+				if(plyr.getRole().getRoleID() == 2){ //Highest Ranking Role
+					plyr.setPlayerDollars(plyr.getPlayerDollars() + topRolePayout);
+				}
+				else if(plyr.getRole().getRoleID() == 1){ //Middle Ranking Role
+					plyr.setPlayerDollars(plyr.getPlayerDollars() + middleRolePayout);
+				}
+				else if(plyr.getRole().getRoleID() == 0){ //Lowest Ranking Role
+					plyr.setPlayerDollars(plyr.getPlayerDollars() + bottomRolePayout);
+				}
+			}
+
+			/* Giving bonuses to off card players */
+			for(Player plyr : this.activePlayer.getPlayerRoom().getRoomScene().getPlayersOffCard()){
+				plyr.setPlayerDollars(plyr.getPlayerDollars() + plyr.getRole().getRoleLevel());
+			}
     }
 
-    //TODO discuss awardPlayer()
-    public void awardPlayer() {
-
+    public void awardPlayer(Player plyr) {
+        if(plyr.getRole().getIsOnCardRole()){ // On card role
+            plyr.setPlayerCredits(plyr.getPlayerCredits() + 2);
+            plyr.getPlayerRoom().getRoomScene().removeShotCounter();
+            if(plyr.getPlayerRoom().getRoomScene().getShotCount() == 0){
+                payBonuses(plyr.getPlayerRoom().getRoomScene());
+                plyr.getPlayerRoom().getRoomScene().finishScene();
+            }
+        }
+        else { // Off card role
+            plyr.setPlayerDollars(plyr.getPlayerCredits() + 1);
+            plyr.setPlayerCredits(plyr.getPlayerCredits() + 1);
+            if(plyr.getPlayerRoom().getRoomScene().getShotCount() == 0 && !(plyr.getPlayerRoom().getRoomScene().getPlayersOnCard().isEmpty())){
+                payBonuses(plyr.getPlayerRoom().getRoomScene());
+                plyr.getPlayerRoom().getRoomScene().finishScene();
+            }
+        }
     }
 
 
