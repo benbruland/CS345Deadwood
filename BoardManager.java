@@ -56,7 +56,13 @@ public class BoardManager {
         newPlayer.setPlayerRoom(this.gameBoard.getTrailers());
         return newPlayer;
     }
-    
+
+    public ArrayList<Card> getDeck() {
+        return this.getBoard().getDeck();
+    }
+
+    // Sets up the board for the given number of players
+    // Responsible for the creation of the gameBoard object
     private void initBoard(int numPlayers) {
         XMLParser parser = new XMLParser();
         this.gameBoard = parser.parseBoard();
@@ -70,7 +76,11 @@ public class BoardManager {
         }
         
         board.setPlayers(players);
-
+        this.dealScenes(10);
+        ArrayList<Room> rooms = this.getBoard().getRooms();
+        for (int i = 0; i < rooms.size(); i++) {
+            rooms.get(i).getRoomScene().printScene();
+        }
     }
 
     public Player getActivePlayer() {
@@ -96,10 +106,6 @@ public class BoardManager {
         int randomNum = randGen.nextInt((max - min) + 1) + min;
     
         return randomNum;
-    }
-
-    private int rollDice(int numFaces) {
-        return randInt(1, numFaces);
     }
 
     //TODO Implement PayBonuses()
@@ -155,9 +161,99 @@ public class BoardManager {
     }
 
     //TODO implement createRandomScenes
-    public ArrayList<Scene> createRandomScenes() {
+    
+    /*
+        Select 10 random cards, assign them to scene objects.
+        Remove these cards from the pool deck
+    */
+    
+    private void removeCardFromDeck(int cardIndex) {
+        int originalDeckSize = this.getDeck().size();
+        this.getBoard().getDeck().remove(cardIndex);
 
-        //TODO: Fill out return val
-        return null;
+        assert this.getDeck().size() == originalDeckSize - 1 : "Item not correctly removed from deck";
+
+    }
+
+    // This function creates randomized scene objects
+    // It will remove the cards which were assigned to the random scene objects
+    // to prevent re-use of cards.
+    // it returns an array of scenes which were randomly assigned a card
+    // from the board's deck ArrayList.
+
+    public ArrayList<Scene> createRandomScenes(int numScenes) {
+        this.shuffleDeck(this.getDeck());
+        
+        ArrayList<Scene> randomScenes = new ArrayList<Scene>();
+        int originalDeckSize = this.getDeck().size();
+
+        for (int i = 0; i < numScenes; i++) {
+            Scene randScene = new Scene();
+            randScene.setSceneCard(this.getDeck().get(i));
+            randomScenes.add(randScene);
+            this.removeCardFromDeck(i);
+        }
+
+        assert randomScenes.size() == numScenes : 
+                "Random scenes ArrayList not filled size: " 
+                        + randomScenes.size() + " desired size: " + numScenes;
+
+        assert this.getDeck().size() == originalDeckSize - numScenes : "Items not correctly removed from deck.";
+        return randomScenes;
+    }
+
+    // This function ensures that the scene's pointer to its room
+    // and the room's pointer to its scene are respectively correct / synced.
+    private void assignSceneToRoom(Scene scene, Room room) {
+        scene.setSceneRoom(room);
+        room.setRoomScene(scene);
+        scene.setShotsRemaining(room.getNumTakes());
+    }
+
+    // This function ensures that the scene's pointer to its room
+    // and the room's pointer to its scene are respectively correct / synced.
+    private void removeSceneFromRoom(Room room) {
+        Scene roomScene = room.getRoomScene();
+        room.setRoomScene(null);
+        roomScene.setSceneRoom(null);
+    }
+
+    public ArrayList<Role> getAvailableRoles(Scene scene) {
+        ArrayList<Role> availableRoles = new ArrayList<Role>();
+        ArrayList<Role> onCardRoles = scene.getOnCardRoles();
+        ArrayList<Role> offCardRoles = scene.getOffCardRoles();
+        
+        for (int i = 0; i < onCardRoles.size(); i++ ) {
+            Role onCardRole = onCardRoles.get(i);
+            if (onCardRole.getRoleAvailable()) {
+                availableRoles.add(onCardRole);
+            }
+        }
+
+        for (int i = 0; i < offCardRoles.size(); i++ ) {
+            Role offCardRole = offCardRoles.get(i);
+            if (offCardRole.getRoleAvailable()) {
+                availableRoles.add(offCardRole);
+            }
+        }
+        
+        return availableRoles;
+    }
+
+    private void dealScenes(int numScenes) {
+        ArrayList<Room> rooms = this.getBoard().getRooms();
+        
+        // It should be noted that not all rooms are contained within the board object
+        // rooms.size() should be equivalent to the number of rooms in which a player can actually
+        // act. The board manager should deal 10 scene cards at one time because there are 10 rooms.
+
+        assert rooms.size() == numScenes : "Scenes not being dealt to every room.";
+        ArrayList<Scene> randomScenes = this.createRandomScenes(numScenes);
+
+        for (int i = 0; i < numScenes; i++) {
+            Scene roomScene = randomScenes.get(i);
+            Room dealRoom = rooms.get(i);
+            assignSceneToRoom(roomScene, dealRoom);
+        }
     }
 }

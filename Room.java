@@ -17,12 +17,15 @@ public class Room {
 	
 	private ArrayList<Player> playersInRoom;
 	private ArrayList<String> neighbors;
+	
 	/* No argument constructor*/
 	public Room() {
 
 	}
 	
 	public Room(int id, String name) {
+		assert name != "" : "Name must be non-empty";
+		assert id >= 0 : "room id must be a valid index into boardRooms";
 		this.roomID = id;
 		this.roomName = name;
 	}
@@ -112,6 +115,10 @@ public class Room {
 
 	public Scene getRoomScene(){
 		return this.roomScene;
+	}
+
+	public void setRoomScene(Scene s) {
+		this.roomScene = s;
 	}
 
 	public boolean addPlayerToRoom(Player plyr){ 
