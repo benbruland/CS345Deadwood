@@ -1,3 +1,4 @@
+import java.util.Collections;
 import java.util.ArrayList;
 
 public class Scene {
@@ -45,10 +46,6 @@ public class Scene {
 	}
 
 	/*
-	 * ====== PRIVATE METHODS ======
-	 */
-
-	/*
 	 * ====== PUBLIC METHODS ======
 	 */
 
@@ -75,7 +72,7 @@ public class Scene {
 		return playersOnCard;
 	}
 
-	public ArrayList<Player> getPlayersOffCard(int roleID) {
+	public ArrayList<Player> getPlayersOffCard() {
 		ArrayList<Player> playersOffCard = new ArrayList<Player>();
 		for (Player plyr : playersInScene) {
 			if (!plyr.getRole().getIsOnCardRole()) {
@@ -100,9 +97,82 @@ public class Scene {
 		return this.shotsRemaining;
 	}
 
-	//TODO: Implement finishScene
 	public void finishScene() {
+		ArrayList<Player> playersOnCard = this.getPlayersOnCard();
+		ArrayList<Player> playersOffCard = this.getPlayersOffCard();
+		ArrayList<Role> onCardRole = this.getOnCardRoles();
+		ArrayList<Role> offCardRole = this.getOffCardRoles();
 
+		if(playersOnCard.isEmpty()){ // No player's working on card role, so no payout
+			
+			/* Setting all roles refs associated to scene to unavailable / not working */
+			for(Player plyr : this.playersInScene){
+				plyr.setPlayerInRole(false);
+			}
+			for(Role rl : offCardRole){
+				rl.setRoleAvailable(false);
+			}
+			for(Role rl : onCardRole){
+				rl.setRoleAvailable(false);
+			}
+			return;
+		}
+		else { // At least one on card role for scene
+			ArrayList<Integer> dieRolls = new ArrayList<Integer>();
+			for(int i = 0; i < this.sceneCard.getBudget(); i++){
+				dieRolls.add(this.playersInScene.get(0).rollDice(6));
+			}
+			Collections.sort(dieRolls);
+			int topRolePayout = 0;
+			int middleRolePayout = 0;
+			int bottomRolePayout = 0;
+			int j = 0;
+
+			/* Loop collecting on card bonuses into top, middle, and bottom */
+			for(int i = dieRolls.size() - 1; i >= 0; i--){
+				j++;
+				if(j == 1){
+					topRolePayout += dieRolls.get(i);
+				}
+				else if (j == 2){
+					middleRolePayout += dieRolls.get(i);
+				}
+				else{
+					bottomRolePayout += dieRolls.get(i);
+					j = 0;
+				}
+			}
+
+			/* Giving bonuses to on card players */
+			for(Player plyr : playersOnCard){
+				if(plyr.getRole().getRoleID() == 2){ //Highest Ranking Role
+					plyr.setPlayerDollars(plyr.getPlayerDollars() + topRolePayout);
+				}
+				else if(plyr.getRole().getRoleID() == 1){ //Middle Ranking Role
+					plyr.setPlayerDollars(plyr.getPlayerDollars() + middleRolePayout);
+				}
+				else if(plyr.getRole().getRoleID() == 0){ //Lowest Ranking Role
+					plyr.setPlayerDollars(plyr.getPlayerDollars() + bottomRolePayout);
+				}
+			}
+
+			/* Giving bonuses to off card players */
+			for(Player plyr : playersOffCard){
+				plyr.setPlayerDollars(plyr.getPlayerDollars() + plyr.getRole().getRoleLevel());
+			}
+
+			/* Setting all roles refs associated to scene to unavailable / not working */
+			for(Player plyr : this.playersInScene){
+				plyr.setPlayerInRole(false);
+			}
+			for(Role rl : offCardRole){
+				rl.setRoleAvailable(false);
+			}
+			for(Role rl : onCardRole){
+				rl.setRoleAvailable(false);
+			}
+			return;
+		}
 	}
 
 	public void setShotsRemaining(int shots) {
