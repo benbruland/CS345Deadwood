@@ -83,17 +83,14 @@ public class Player {
                     return true; 
                 }
                 else{
-                    System.out.println("Insufficient number of credits or dollars for selected upgrade.");
                     return false;
                 }
             }
             else{
-                System.out.println("user selection is out of the acceptable bound 2 and 6, inclusive.");
-                return false;
+               return false;
             }
         }
         else { 
-            System.out.println("Player must be in Casting Office in order to upgrade.");
             return false;
         }
     }
@@ -104,7 +101,6 @@ public class Player {
             return true;
         }
         else{
-            System.out.println("Player is unable to rehearse.");
             return false;
         }
     }
@@ -116,7 +112,9 @@ public class Player {
             validRoom = true;
         }
         if(validRoom){
-            this.playerRoom = desiredRoom; // TODO: edit player card / scene?  
+            this.playerRoom = desiredRoom; 
+            this.playerCard = this.playerRoom.getRoomScene().getSceneCard();  
+            this.rehearseBonus = 0;
             return true;
         }
         else{
@@ -124,44 +122,17 @@ public class Player {
         }
     }
 
-    // TODO Discuss purpose of work()
-    private void actRole() {
-        if(this.playerInRole){
-            int playerRoll = this.rollDice(6) + this.addRehearsalBonus();
-            if(this.playerRole.getIsOnCardRole()){  // on card role
-                if (playerRoll > this.playerCard.getBudget()){
-                    // Success
-                    this.playerCredits += 2;
-                    this.playerRoom.getRoomScene().removeShotCounter();
-                    if(this.playerRoom.getRoomScene().getShotCount()  == 0){
-                        this.playerRoom.getRoomScene().finishScene();
-                        return;
-                    }
-                }
-                else {
-                    // Failure
-                    return;
-                }
-            }
-            else {                                  // off card role
-                if (playerRoll > this.playerCard.getBudget()){
-                    // Success
-                    this.playerCredits += 1;
-                    this.playerCredits += 1;
-                    this.playerRoom.getRoomScene().removeShotCounter();
-                    if(this.playerRoom.getRoomScene().getShotCount()  == 0){
-                        this.playerRoom.getRoomScene().finishScene();
-                        return;
-                    }
-                }
-                else {
-                    // Failure
-                    this.playerDollars += 1;
-                    return;
-                }
-            }
+    /* act assumes that active player has a role, and that BoardManager will handle all checking for on-card vs. off-card role */
+    private boolean act() {
+        int playerRoll = this.rollDice(6) + this.addRehearsalBonus();
+        if (playerRoll > this.playerCard.getBudget()){
+            // Success
+            return true;
         }
-
+        else {
+            // Failure
+            return false;
+        }
     }
 
     private boolean chooseRole(int id) {
@@ -173,18 +144,16 @@ public class Player {
                     this.playerRole = rl;
                     this.rehearseBonus = 0;
                     rl.setRoleAvailable(false);
-                    //TODO: Reset player card to new scene?
                     return true;
                 }
                 else{
-                    System.out.println("Role unavailable.");
                     return false;
                 }
             }
         }
         /*TODO: Is this logic correct? Could you hypothetically take a role with a lesser rank while 
                 *staying on the Scene, or do you have to stay on Role until Scene is wrapped? */
-        System.out.println("Player currently in Role, cannot take another on Role while in Role.");
+        // System.out.println("Player currently in Role, cannot take another on Role while in Role.");
         return false;
     }
 
@@ -202,6 +171,23 @@ public class Player {
 
     public Role getRole() {
         return this.playerRole;
+    }
+
+    public Card getPlayerCard() {
+        return this.playerCard;
+    }
+
+    public Room getPlayerRoom(){
+        return this.playerRoom;
+    }
+
+    public boolean getPlayerInRole() {
+        return this.playerInRole;
+    }
+
+    public void setPlayerInRole(boolean tof) {
+        this.playerInRole = tof;
+        return;
     }
 
     public void setPlayerCredits(int numCredits) {
@@ -227,6 +213,10 @@ public class Player {
 
     public void setPlayerRoom(Room room) {
         this.playerRoom = room;
+    }
+
+    public void setPlayerRole(Role rl){
+        this.playerRole = rl;
     }
 
     public void setPlayerCard(Card crd){

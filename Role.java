@@ -42,6 +42,10 @@ public class Role {
         return this.line;
     }
 
+    public int getRoleLevel() {
+        return this.roleLevel;
+    }
+
     public boolean getIsOnCardRole() {
         return this.isOnCardRole;
     }
