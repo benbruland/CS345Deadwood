@@ -17,12 +17,15 @@ public class Room {
 	
 	private ArrayList<Player> playersInRoom;
 	private ArrayList<String> neighbors;
+	
 	/* No argument constructor*/
 	public Room() {
 
 	}
 	
 	public Room(int id, String name) {
+		assert name != "" : "Name must be non-empty";
+		assert id >= 0 : "room id must be a valid index into boardRooms";
 		this.roomID = id;
 		this.roomName = name;
 	}
@@ -94,7 +97,7 @@ public class Room {
 		return this.neighbors;
 	}
 
-	 public ArrayList<Player> getPlayersInRoom(){
+	 public ArrayList<Player> getPlayersInRoom() {
 		return this.playersInRoom;
 	}
 	
@@ -110,21 +113,26 @@ public class Room {
 		this.neighbors = neighboringRooms;
 	}
 
-	public Scene getRoomScene(){
+	public Scene getRoomScene() {
 		return this.roomScene;
 	}
 
-	public boolean addPlayerToRoom(Player plyr){ 
-		if(!playersInRoom.contains(plyr)){
+	public void setRoomScene(Scene s) {
+		this.roomScene = s;
+	}
+
+	public boolean addPlayerToRoom(Player plyr) { 
+		if(!playersInRoom.contains(plyr)) {
+			plyr.setPlayerRoom(this);
 			playersInRoom.add(plyr);
 			return true;
 		}
 		return false;
 	}
 
-	public boolean removePlayerToRoom(Player plyr){ 
+	public boolean removePlayerFromRoom(Player plyr) { 
 		/* ArrayList.remove(Object obj) returns true if it finds obj in list and it is removed, else false.
-		    If there are duplicates, removes first occurence of obj and returns true. */
+			If there are duplicates, removes first occurence of obj and returns true. */
 		return playersInRoom.remove(plyr);
 	}
 
