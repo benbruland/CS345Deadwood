@@ -94,10 +94,20 @@ public class BoardManager {
         assert this.dayOfGame <= this.numberOfDays : "Invalid game day " + this.dayOfGame + " should be between 1 and " + this.numberOfDays;
     }
 
-    //TODO Implement ScoreGame()
-    // Should return the winner of the game's player object.
+    /* Assumes that only one winner and will return the first player obj with "highest score" */
     public Player scoreGame() {
-        return null;
+        ArrayList<Player> plyrs = gameBoard.getPlayers();
+        Player winner = null;
+        int maxScore = 0;
+
+        for(Player plyr : plyrs){
+            int temp = plyr.getPlayerCredits() + plyr.getPlayerDollars() + (plyr.getPlayerRank() * 5);
+            if(temp > maxScore){
+                maxScore = temp;
+                winner = plyr;
+            }    
+        }
+        return winner;
     }
 
     // Returns a random integer in range [min, max]
