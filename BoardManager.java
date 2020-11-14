@@ -219,7 +219,7 @@ public class BoardManager{
             validChoice = false;
             while(!validChoice && action != "exit"){
                 System.out.println("Type one of the following options to perform for your turn:\n\t 1. Rehearse\n\t 2. Act\n");
-                action = playerChoice.nextLine();
+                action = playerChoice.next();
                 switch(action){
                     case "EXIT":
                     case "Exit":
@@ -333,7 +333,7 @@ public class BoardManager{
                         String upgradeChoice = "";
                         int selection;
                         while(!validUpgrade && upgradeChoice != "exit"){
-                            System.out.println("Type which upgrade you would like from the options below: \n\t 2. Rank 2, Costs 4 dollars & 5 credits \n\t 2. Rank 3, Costs 10 dollars & 10 credits \n\t 2. Rank 4, Costs 18 dollars & 15 credits \n\t 2. Rank 5, Costs 28 dollars & 20 credits \n\t 2. Rank 2, Costs 40 dollars & 25 credits \n\t (Exit to quit)");
+                            System.out.println("Type which upgrade you would like from the options below: \n\t 2. Rank 2, Costs 4 dollars & 5 credits \n\t 3. Rank 3, Costs 10 dollars & 10 credits \n\t 4. Rank 4, Costs 18 dollars & 15 credits \n\t 5. Rank 5, Costs 28 dollars & 20 credits \n\t 6. Rank 2, Costs 40 dollars & 25 credits \n\t (Exit to quit)");
                             upgradeChoice = playerChoice.nextLine();
                             switch(upgradeChoice){
                                 case "EXIT":
@@ -404,103 +404,107 @@ public class BoardManager{
                     case "role":
                     case "3.":
                     case "3":
-
-                        ArrayList<Role> offCard = plyr.getPlayerRoom().getOffCardRoles();
-                        ArrayList<Role> onCard = plyr.getPlayerCard().getRoles();
-                        ArrayList<Integer> roleIDs = new ArrayList<Integer>();
-                        System.out.println("ON CARD ROLES");
-                        for(Role rl : onCard){
-                            roleIDs.add(rl.getRoleID());
-                            System.out.println("RoleID: " + rl.getRoleID() + ", Rank: " + rl.getRoleLevel() + ", Title: " + rl.getRoleName() + ", Line: " + rl.getRoleLine());
-                        }
-                        System.out.println("OFF CARD ROLES");
-                        for(Role rl : offCard){
-                            roleIDs.add(rl.getRoleID());
-                            System.out.println("RoleID: " + rl.getRoleID() + ", Rank: " + rl.getRoleLevel() + ", Title: " + rl.getRoleName() + ", Line: " + rl.getRoleLine());
-                        }
-                        System.out.println("Type desired role's roleID from list of roles above: ");
-                        action = playerChoice.nextLine();
-                        boolean validID = plyr.performChooseRole(Integer.parseInt(action));
-                        if(validID){
-                            System.out.println("Valid roleID, player is now working role with roleID = " + action);
-                            System.out.println("Player now has opportunity to act/rehearse.");
-                            validChoice = false;
-                            while(!validChoice && action != "exit"){
-                                System.out.println("Type one of the following options to perform for your turn:\n\t 1. Rehearse\n\t 2. Act\n\t (Exit to quit)");
-                                action = playerChoice.nextLine();
-                                switch(action){
-                                    case "EXIT":
-                                    case "Exit":
-                                    case "exit":
-                                    case "E":
-                                    case "e":
-                                        action = "exit";
-                                        validChoice = true;
-                                        break;
-                                    
-                                    case "Rehearse":
-                                    case "rehearse":
-                                    case "1":
-                                    case "1.":
-                                        retVal = plyr.performRehearse();
-                                        if(retVal){
-                                            System.out.println("Rehearse successful.");
-                                        }
-                                        else {
-                                            System.out.println("Rehearse unsuccessful.");
-                                        }
-                                        validChoice = true;
-                                        break;
-                                    case "Act":
-                                    case "act":
-                                    case "2.":
-                                    case "2":
-                                        retVal = plyr.performAct();
-                                        if(retVal){
-                                            System.out.println("Act successful.");
-                                            awardPlayer(plyr);
-                                            /* Last shot counter removed */
-                                            if(plyr.getPlayerRoom().getRoomScene().getShotCount() == 0){
-                                                System.out.println("Last shot counter for scene removed!");
-                                                /* At least one player occupies on card role */
-                                                if(!plyr.getPlayerRoom().getRoomScene().getPlayersOnCard().isEmpty()){
-                                                    System.out.println("Paying bonuses to players on finished scene.");
-                                                    payBonuses(plyr.getPlayerRoom().getRoomScene());
-                                                }
-                                                else{
-                                                    System.out.println("Scene has no on-card players, so no bonuses will be paid.");
-                                                }
-                                                /* Only one scene remaining */
-                                                if(plyr.getPlayerRoom().getRoomScene().getScenesRemaining() == 1){
-                                                    /* Returns winner if game over and null if not */
-                                                    Player winner = cycleGameDay();
-                                                    if (winner != null){
-                                                        return true;
-                                                    }
-                                                    System.out.println("=====");
-                                                    System.out.println("DAY " + getCurrentDay());
-                                                    System.out.println("=====");
-                                                }
-                                            }
-                                        }
-                                        else {
-                                            System.out.println("Act unsuccessful.");
-                                            if(!plyr.getRole().getIsOnCardRole()){
-                                                System.out.println("Player has off card role and is award one dollar.");
-                                                plyr.setPlayerDollars(plyr.getPlayerDollars() + 1);
-                                            }
-                                        }
-                                        validChoice = true;
-                                        break;
-                                    default:
-                                        System.out.println("Invalid choice, please try again.");
-                                }
-
+                        try{    
+                            ArrayList<Role> offCard = plyr.getPlayerRoom().getOffCardRoles();
+                            ArrayList<Role> onCard = plyr.getPlayerCard().getRoles();
+                            ArrayList<Integer> roleIDs = new ArrayList<Integer>();
+                            System.out.println("ON CARD ROLES");
+                            for(Role rl : onCard){
+                                roleIDs.add(rl.getRoleID());
+                                System.out.println("RoleID: " + rl.getRoleID() + ", Rank: " + rl.getRoleLevel() + ", Title: " + rl.getRoleName() + ", Line: " + rl.getRoleLine());
                             }
-                        }
-                        else {
-                            System.out.println("Invalid roleID, role unavailable, or player rank not high enough for role.");
-                            validChoice = false;
+                            System.out.println("OFF CARD ROLES");
+                            for(Role rl : offCard){
+                                roleIDs.add(rl.getRoleID());
+                                System.out.println("RoleID: " + rl.getRoleID() + ", Rank: " + rl.getRoleLevel() + ", Title: " + rl.getRoleName() + ", Line: " + rl.getRoleLine());
+                            }
+                            System.out.println("Type desired role's roleID from list of roles above: ");
+                            action = playerChoice.nextLine();
+                            boolean validID = plyr.performChooseRole(Integer.parseInt(action));
+                            if(validID){
+                                System.out.println("Valid roleID, player is now working role with roleID = " + action);
+                                System.out.println("Player now has opportunity to act/rehearse.");
+                                validChoice = false;
+                                while(!validChoice && action != "exit"){
+                                    System.out.println("Type one of the following options to perform for your turn:\n\t 1. Rehearse\n\t 2. Act\n\t (Exit to quit)");
+                                    action = playerChoice.nextLine();
+                                    switch(action){
+                                        case "EXIT":
+                                        case "Exit":
+                                        case "exit":
+                                        case "E":
+                                        case "e":
+                                            action = "exit";
+                                            validChoice = true;
+                                            break;
+                                        
+                                        case "Rehearse":
+                                        case "rehearse":
+                                        case "1":
+                                        case "1.":
+                                            retVal = plyr.performRehearse();
+                                            if(retVal){
+                                                System.out.println("Rehearse successful.");
+                                            }
+                                            else {
+                                                System.out.println("Rehearse unsuccessful.");
+                                            }
+                                            validChoice = true;
+                                            break;
+                                        case "Act":
+                                        case "act":
+                                        case "2.":
+                                        case "2":
+                                            retVal = plyr.performAct();
+                                            if(retVal){
+                                                System.out.println("Act successful.");
+                                                awardPlayer(plyr);
+                                                /* Last shot counter removed */
+                                                if(plyr.getPlayerRoom().getRoomScene().getShotCount() == 0){
+                                                    System.out.println("Last shot counter for scene removed!");
+                                                    /* At least one player occupies on card role */
+                                                    if(!plyr.getPlayerRoom().getRoomScene().getPlayersOnCard().isEmpty()){
+                                                        System.out.println("Paying bonuses to players on finished scene.");
+                                                        payBonuses(plyr.getPlayerRoom().getRoomScene());
+                                                    }
+                                                    else{
+                                                        System.out.println("Scene has no on-card players, so no bonuses will be paid.");
+                                                    }
+                                                    /* Only one scene remaining */
+                                                    if(plyr.getPlayerRoom().getRoomScene().getScenesRemaining() == 1){
+                                                        /* Returns winner if game over and null if not */
+                                                        Player winner = cycleGameDay();
+                                                        if (winner != null){
+                                                            return true;
+                                                        }
+                                                        System.out.println("=====");
+                                                        System.out.println("DAY " + getCurrentDay());
+                                                        System.out.println("=====");
+                                                    }
+                                                }
+                                            }
+                                            else {
+                                                System.out.println("Act unsuccessful.");
+                                                if(!plyr.getRole().getIsOnCardRole()){
+                                                    System.out.println("Player has off card role and is award one dollar.");
+                                                    plyr.setPlayerDollars(plyr.getPlayerDollars() + 1);
+                                                }
+                                            }
+                                            validChoice = true;
+                                            break;
+                                        default:
+                                            System.out.println("Invalid choice, please try again.");
+                                    }
+
+                                }
+                            }
+                            else {
+                                System.out.println("Invalid roleID, role unavailable, or player rank not high enough for role.");
+                                validChoice = false;
+                            }
+                        } catch (NullPointerException e){
+                            System.out.println("No roles in this room.");
+                            break;
                         }
                     default:
                         System.out.println("Invalid choice, please try again.");
@@ -511,6 +515,7 @@ public class BoardManager{
                 }
             }
         }
+        System.out.println("Scanner closed");
         playerChoice.close();
         return false;
     }
