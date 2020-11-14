@@ -53,11 +53,29 @@ public class Deadwood {
         int numberOfPlayers = playerNames.size();
         BoardManager manager = new BoardManager(numberOfPlayers);
         ArrayList<Player> plyrs = manager.getBoard().getPlayers();
+        /* First player decided randomly */
+        Player currPlayer = manager.getActivePlayer();
+        int playerIndex = -1;
         for(int i = 0; i < numberOfPlayers; i++){
             plyrs.get(i).setName(playerNames.get(i));
+            if (plyrs.get(i) == currPlayer){
+                playerIndex = i;
+            }
         }
+        assert playerIndex != -1: "Unable to find randomly chosen first player.";
         ArrayList<Card> deck = manager.getDeck();
         manager.shuffleDeck(deck);
-        
+
+        boolean endOfGame = false;
+        while(!endOfGame){
+            System.out.println("Player " + ((playerIndex % numberOfPlayers) + 1) + "'s turn");
+            endOfGame = manager.doPlayerTurn(currPlayer);
+            // Increment playerIndex and change polayer turns
+            if(!endOfGame){
+                manager.setActivePlayer(plyrs.get(++playerIndex % numberOfPlayers));
+                currPlayer = manager.getActivePlayer();
+            }
+        }
+        System.out.println("Final day completed, player " + (playerIndex + 1) + " is the winner!");
     }
 }

@@ -111,6 +111,14 @@ public class Board {
 		return this.deck;
 	}
 	
+	public ArrayList<Scene> getBoardScenes(){
+		return this.boardScenes;
+	}
+
+	public ArrayList<Room> getBoardRooms(){
+		return this.boardRooms;
+	}
+
 	public Room getTrailers() {
 		return this.trailers;
 	}

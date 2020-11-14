@@ -3,8 +3,6 @@ import java.util.Random;
 
 public class Player {
 
-    static int playerCounter = 0;
-
     /* Primitive Attributes */
     private int playerRank;
     private int playerCredits;
@@ -24,12 +22,12 @@ public class Player {
      *          - playerName, playerRoom, playerCard
      * 
      */ 
-    public Player() {
+    public Player(int id) {
         this.playerRank = 1;
         this.playerCredits = 0;
         this.playerDollars = 0;
         this.rehearseBonus = 0;
-        this.playerID = ++playerCounter;
+        this.playerID = id;
         this.playerInRole = false;
         this.playerRole = null;
         this.playerCard = null;
@@ -39,13 +37,13 @@ public class Player {
         ======== PRIVATE METHODS ========
      */
 
-    private boolean upgrade(int selection, int[] creditCosts, int[] dollarCosts){
+    private boolean upgrade(int selection, int creditCost, int dollarCost){
          if(this.playerRoom.getRoomName().equals("castingOffice")){ 
             if(selection >= 2 && selection <= 6){  
-                if(this.playerRank < selection-1 && this.playerCredits >= creditCosts[selection-1] && this.playerDollars >= dollarCosts[selection-1]){ 
+                if(this.playerRank < selection-1 && this.playerCredits >= creditCost && this.playerDollars >= dollarCost){ 
                     this.playerRank = selection;
-                    this.setPlayerCredits(this.playerCredits-creditCosts[selection-1]);
-                    this.setPlayerDollars(this.playerDollars-dollarCosts[selection-1]);
+                    this.setPlayerCredits(this.playerCredits-creditCost);
+                    this.setPlayerDollars(this.playerDollars-dollarCost);
                     return true; 
                 }
                 else{
@@ -135,8 +133,37 @@ public class Player {
         ======== PUBLIC METHODS ========
     */
 
+    public boolean performUpgrade(int selection, int creditCost, int dollarCost){
+        boolean retVal = upgrade(selection, creditCost, dollarCost);
+        return retVal;
+    }
+
+    public boolean performRehearse(){
+        boolean retVal = rehearse();
+        return retVal;
+    }
+
+    public boolean performAct(){
+        boolean retVal = act();
+        return retVal;
+    }
+
+    public boolean performChooseRole(int id){
+        boolean retVal = chooseRole(id);
+        return retVal;
+    }
+
+    public boolean performMove(Room desiredRoom){
+        boolean retVal = move(desiredRoom);
+        return retVal;
+    }
+
     public Role getRole() {
         return this.playerRole;
+    }
+
+    public String getName(){
+        return this.playerName;
     }
 
     public Card getPlayerCard() {

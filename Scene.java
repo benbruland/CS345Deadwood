@@ -2,6 +2,8 @@ import java.util.ArrayList;
 
 public class Scene {
 
+	static int scenesRemaining = 10;
+
 	/* Primitive Attributes */
 	private int shotsRemaining;
 	
@@ -42,6 +44,10 @@ public class Scene {
 			onCards.get(i).printRole();
 		}
 
+	}
+
+	private static void decrementScenesRemaining(){
+		scenesRemaining -= 1;
 	}
 
 	/*
@@ -112,6 +118,7 @@ public class Scene {
 		for(Role rl : this.getOnCardRoles()){
 			rl.setRoleAvailable(false);
 		}
+		decrementScenesRemaining();
 	}
 
 	public void setShotsRemaining(int shots) {
@@ -128,5 +135,17 @@ public class Scene {
 
 	public Room getSceneRoom() {
 		return this.sceneRoom;
+	}
+
+	public int getScenesRemaining(){
+		return scenesRemaining;
+	}
+
+	public static void setScenesRemaining(){
+		scenesRemaining = 10;
+	}
+
+	public void newDay(){
+		setScenesRemaining();
 	}
 }
