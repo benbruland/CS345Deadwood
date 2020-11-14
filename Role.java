@@ -24,6 +24,7 @@ public class Role {
         System.out.println("\t * Role ID = " + this.roleID);
         String offCard = this.isOnCardRole ? "yes" : "no";
         System.out.println("\t * Role is on card role: " + offCard);
+        System.out.println("\t * Role Available : " + this.roleAvailable);
     }
 
     public boolean getRoleAvailable() {

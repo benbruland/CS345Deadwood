@@ -67,15 +67,30 @@ public class Deadwood {
         manager.shuffleDeck(deck);
 
         boolean endOfGame = false;
+        Scanner playerChoice = new Scanner(System.in);
         while(!endOfGame){
             System.out.println("Player " + ((playerIndex % numberOfPlayers) + 1) + "'s turn");
-            endOfGame = manager.doPlayerTurn(currPlayer);
-            // Increment playerIndex and change polayer turns
+            manager.doPlayerTurn(playerChoice, currPlayer);
+
+            /* Checking for one scene left */
+            if(currPlayer.getPlayerRoom().getRoomScene().getScenesRemaining() == 1){
+                /* Returns winner if game over and null if not */
+                Player winner = manager.cycleGameDay();
+                if (winner != null){
+                    endOfGame = true;
+                }
+                System.out.println("=====");
+                System.out.println("DAY " + manager.getCurrentDay());
+                System.out.println("=====");
+            }
+
+            /* Setting up next player's turn */
             if(!endOfGame){
                 manager.setActivePlayer(plyrs.get(++playerIndex % numberOfPlayers));
                 currPlayer = manager.getActivePlayer();
             }
         }
         System.out.println("Final day completed, player " + (playerIndex + 1) + " is the winner!");
+        playerChoice.close();
     }
 }

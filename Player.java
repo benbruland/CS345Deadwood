@@ -99,19 +99,36 @@ public class Player {
         }
     }
 
-    private boolean chooseRole(int id) {
+    private boolean chooseRole(int id, boolean isOnCard) {
         if(!this.playerInRole){
-            ArrayList<Role> roleList = this.playerCard.getRoles();
-            for(Role rl : roleList){
-                if (rl.getRoleID() == id && rl.getRoleAvailable()){
-                    this.playerInRole = true;
-                    this.playerRole = rl;
-                    this.rehearseBonus = 0;
-                    rl.setRoleAvailable(false);
-                    return true;
+            if(isOnCard){
+                ArrayList<Role> roleList = this.playerRoom.getRoomScene().getOnCardRoles();
+                for(Role rl : roleList){
+                    if (rl.getRoleID() == id && rl.getRoleAvailable()){
+                        this.playerInRole = true;
+                        this.playerRole = rl;
+                        this.rehearseBonus = 0;
+                        rl.setRoleAvailable(false);
+                        return true;
+                    }
+                    else{
+                        return false;
+                    }
                 }
-                else{
-                    return false;
+            }
+            else{
+                ArrayList<Role> roleList = this.playerRoom.getRoomScene().getOffCardRoles();
+                for(Role rl : roleList){
+                    if (rl.getRoleID() == id && rl.getRoleAvailable()){
+                        this.playerInRole = true;
+                        this.playerRole = rl;
+                        this.rehearseBonus = 0;
+                        rl.setRoleAvailable(false);
+                        return true;
+                    }
+                    else{
+                        return false;
+                    }
                 }
             }
         }
@@ -148,8 +165,8 @@ public class Player {
         return retVal;
     }
 
-    public boolean performChooseRole(int id){
-        boolean retVal = chooseRole(id);
+    public boolean performChooseRole(int id, boolean isOnCard){
+        boolean retVal = chooseRole(id, isOnCard);
         return retVal;
     }
 

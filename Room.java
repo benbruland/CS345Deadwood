@@ -76,7 +76,7 @@ public class Room {
 		System.out.println();
 	}
 
-	public int getRoomID() {
+	public int getRoomID() { //TODO: FIX -> All RoomIDs returning 0 at this point
 		return this.roomID;
 	}
 
@@ -111,6 +111,14 @@ public class Room {
 
 	public void setNeighbors(ArrayList<String> neighboringRooms) {
 		this.neighbors = neighboringRooms;
+	}
+
+	public void setNameTrailer(Room trailer){
+		this.roomName = "Trailer";
+	}
+
+	public void setNameCastingOffice(Room castingOffice){
+		this.roomName = "Casting Office";
 	}
 
 	public Scene getRoomScene() {
