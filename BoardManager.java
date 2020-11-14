@@ -420,6 +420,11 @@ public class BoardManager{
                 validChoice = promptActionNotInRole(playerChoice, plyr);
                 if(validChoice){ 
                     System.out.println("Success!"); 
+                    if(plyr.getPlayerRoom().getRoomName() != "office" && !plyr.getPlayerInRole()){
+                        validChoice = takeRolePrompt(playerChoice, plyr);
+
+                    }
+                
                     return;
                 }
                 else{
@@ -427,6 +432,87 @@ public class BoardManager{
                 }
             }
         }
+    }
+
+    public boolean takeRolePrompt(Scanner playerChoice, Player plyr){
+        System.out.println("Would you like to take a role? (ex. \"Y/N\" or \"yes/no\"\n");
+        System.out.print("Input: ");
+        String action = playerChoice.nextLine();
+        System.out.println();
+        boolean validChoice = false;
+        while(!validChoice){
+            switch(action){
+                case "Yes":
+                case "yes":
+                case "Y":
+                case "y":
+                    try{    
+                        ArrayList<Role> offCard = plyr.getPlayerRoom().getOffCardRoles();
+                        ArrayList<Role> onCard = plyr.getPlayerCard().getRoles();
+                        ArrayList<Role> availableRoles = new ArrayList<Role>();
+                        int i = 0;
+                        boolean validRole = false;
+                        for(Role rl : onCard){
+                            if(rl.getRoleAvailable()){
+                                availableRoles.add(rl);
+                            }
+                        }
+                        for(Role rl : offCard){
+                            if(rl.getRoleAvailable()){
+                                availableRoles.add(rl);
+                            }
+                        }
+                        System.out.println("==========================================================\n\t\t AVAILABLE ROLES");
+                        for(Role rl : availableRoles){
+                            System.out.println((i++) + 1 + ". " + rl.getRoleName() + ", Rank: " + rl.getRoleLevel() + (rl.getIsOnCardRole()? ", on card." : ", off card."));
+                        }
+                        System.out.println("==========================================================");
+                        System.out.println("Which role would you like to take?\n");
+                        System.out.print("Input: ");
+                        action = playerChoice.nextLine();
+                        System.out.println();
+                        try{
+                            i = Integer.parseInt(action) - 1;
+                            if(availableRoles.get(i).getIsOnCardRole()){
+                                validRole = plyr.performChooseRole(availableRoles.get(i).getRoleID(), true);
+                            }
+                            else {
+                                validRole = plyr.performChooseRole(availableRoles.get(i).getRoleID(), false);
+                            }
+                        } catch (Exception e){
+                            System.out.println("User input is NaN.");
+                            return false;
+                        }
+                        if(validRole){
+                            System.out.println("Role \"" + availableRoles.get(i).getRoleName() + "\" successfully taken.");
+                            return true;
+                        }
+                        else {
+                            System.out.println("Invalid role selection, rank not high enough.");
+                        }
+                        validChoice = true;
+                    } catch (Exception e){
+                        System.out.println("No Roles for this room.");
+                        return false;
+                    }
+                    break;
+                case "No":
+                case "no":
+                case "N":
+                case "n":
+                    System.out.println("Player chose to not take a role.");
+                    validChoice = true;
+                    break;
+                default:
+                    System.out.println("Invalid selection.\n");
+                    System.out.println("Would you like to take a role as well? (ex. \"Y/N\" or \"yes/no\")\n");
+                    System.out.print("Input: ");
+                    action = playerChoice.nextLine();
+                    System.out.println();
+                    break;
+            }
+        }
+        return validChoice;
     }
 
     public Board getBoard() {
