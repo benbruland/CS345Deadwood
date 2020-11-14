@@ -4,6 +4,6 @@ Created by Lukas McIntosh, Ben Bruland
 
 To compile and run:
 
-javac BoardManager.java
+javac Deadwood.java
 
-java BoardManager
+java Deadwood
