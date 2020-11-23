@@ -53,6 +53,8 @@ public class Deadwood {
         int numberOfPlayers = playerNames.size();
         BoardManager manager = new BoardManager(numberOfPlayers);
         ArrayList<Player> plyrs = manager.getBoard().getPlayers();
+        Board b = manager.getBoard();
+        b.printBoard();
         /* First player decided randomly */
         Player currPlayer = manager.getActivePlayer();
         int playerIndex = -1;

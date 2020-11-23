@@ -5,7 +5,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Node;
 import org.w3c.dom.Element;
-import java.io.File;
 import java.util.ArrayList;
 
 public class XMLParser {
@@ -44,9 +43,23 @@ public class XMLParser {
         
         String roleName = getAttributeByName(n, "name");
         int roleLevel = Integer.parseInt(getAttributeByName(n, "level"));
-        
-        Role newRole = new Role(roleId, roleLevel, roleName, onCard);
+        NodeList children = n.getChildNodes();
+        int listSize = children.getLength();
+        String areaType = "area";
+        String lineType = "line";
+        String line = "default line";
+        GuiData data = new GuiData();
+        for (int i = 0; i < listSize; i++) {
+            Node child = children.item(i);
+            if (child.getNodeName().equals(areaType)) {
+                data = parseGuiData(child);
+            } else if (child.getNodeName().equals(lineType)) {
+                line = child.getTextContent();
+            }
+        }
 
+        Role newRole = new Role(roleId, roleLevel, roleName, onCard, data);
+        newRole.setLine(line);
         return newRole;
     }
 
@@ -84,6 +97,15 @@ public class XMLParser {
         //public Card(int cardBudget, int cardSceneId, String card, Role[] roles)
         Card newCard = new Card(budget, sceneID, cardName, cardRoles);
         return newCard;
+    }
+
+    private GuiData parseGuiData(Node areaNode) {
+        int height = Integer.parseInt(getAttributeByName(areaNode, "h"));
+        int width = Integer.parseInt(getAttributeByName(areaNode, "w"));
+        int x = Integer.parseInt(getAttributeByName(areaNode, "x"));
+        int y = Integer.parseInt(getAttributeByName(areaNode, "y"));
+        GuiData data = new GuiData(height, width, x, y);
+        return data;
     }
 
     public ArrayList<Card> readCardData(Document cardDoc) {
@@ -153,35 +175,51 @@ public class XMLParser {
         int numTakes = 1;
         boolean hasTakes = false;
         int listSize = roomData.getLength();
-        
+        GuiData data = new GuiData();
+        ArrayList<GuiData> shotsData = new ArrayList<GuiData>();
+
         for (int i = 0; i < listSize; i++) {
             Node child = roomData.item(i);
             String childType = child.getNodeName();
-
-            if (childType.equals("neighbors")) {
-                neighbors = getRoomNeighbors(child);
-            }
             
-            if (childType.equals("parts")) {
-                offCardRoles = getRoomOffCardRoles(child);
+            switch (childType) {
+                case "neighbors":
+                    neighbors = getRoomNeighbors(child);
+                    break;
+                case "parts":
+                    offCardRoles = getRoomOffCardRoles(child);
+                    break;
+                case "takes":
+                    hasTakes = true;
+                    NodeList takes = child.getChildNodes();
+                    for (int j = 0; j < takes.getLength(); j++) {
+                        Node take = takes.item(j);
+                        if  (take.getNodeName() != "#text") {
+                            NodeList shotPositions = take.getChildNodes();
+                            for (int k = 0; k < shotPositions.getLength(); k++) {
+                                Node position = shotPositions.item(k);
+                                if (position.getNodeName().equals("area")) {
+                                    shotsData.add(parseGuiData(position));
+                                }
+                            }
+                            numTakes++;
+                        }
+                    }
+                    break;
+                case "area":
+                    data = parseGuiData(child);
+                    break;
+                default:
             }
 
-            if (childType.equals("takes")) {
-                hasTakes = true;
-                NodeList takes = child.getChildNodes();
-                for (int j = 0; j < takes.getLength(); j++) {
-                    if  (takes.item(j).getNodeName() != "#text") {
-                        numTakes++;
-                    }
-                }
-                
-            }
         }
 
         //This is for the special case of trailers and office which have no takes, but it
         numTakes = hasTakes ? numTakes : 0;
         
         Room newRoom = new Room(0, roomName, null, neighbors, offCardRoles, numTakes);
+        newRoom.setGuiData(data);
+        newRoom.setShotPositions(shotsData);
         return newRoom;
     }
 

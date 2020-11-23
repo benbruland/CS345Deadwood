@@ -5,6 +5,7 @@ public class Card {
     private String cardName;
     private int cardScene;
     private ArrayList<Role> cardRoles;
+    private String cardImage;
 
     public Card() {
         this.cardBudget = 0;
@@ -46,6 +47,10 @@ public class Card {
         return this.cardBudget;
     }
 
+    public String getImage() {
+        return this.cardImage;
+    }
+
     public String getName() {
         return this.cardName;
     }
@@ -68,5 +73,9 @@ public class Card {
 
     public void setCardBudget(int budget) {
         this.cardBudget = budget;
+    }
+
+    public void setImage(String img) {
+        this.cardImage = img;
     }
 }

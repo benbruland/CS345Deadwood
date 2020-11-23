@@ -6,7 +6,8 @@ public class Room {
 	private int roomID;
 	private int numTakes;
 	private String roomName;
-
+	private GuiData data;
+	private ArrayList<GuiData> shotPositions;
 	/* Non-primitive Attributes*/
 	
 	//All on-card roles stored in scenes, these are randomly assigned.
@@ -64,6 +65,13 @@ public class Room {
 			System.out.println("======================================");
 			this.offCardRoles.get(i).printRole();
 			System.out.println("======================================");
+		}
+		System.out.println("Room gui data:");
+		
+		this.data.printGuiData();
+		System.out.println("\t Shot Position Data");
+		for (int i = 0; i < this.shotPositions.size(); i++) {
+			this.shotPositions.get(i).printGuiData();
 		}
 
 		System.out.println("Room Neighbors: ");
@@ -144,4 +152,19 @@ public class Room {
 		return playersInRoom.remove(plyr);
 	}
 
+	public GuiData getGuiData() {
+		return this.data;
+	}
+
+	public void setGuiData(GuiData d) {
+		this.data = d;
+	}
+
+	public ArrayList<GuiData> getShotPositions() {
+		return this.shotPositions;
+	}
+
+	public void setShotPositions(ArrayList<GuiData> posData) {
+		this.shotPositions = posData;
+	}
 }

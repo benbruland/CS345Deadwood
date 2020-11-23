@@ -76,8 +76,9 @@ public class BoardManager{
             Player newPlayer = makeInitialPlayer(numPlayers, i);
             players.add(newPlayer);
         }
-        
+       
         board.setPlayers(players);
+        board.printBoard();
         this.dealScenes(10);
         // ArrayList<Room> rooms = this.getBoard().getRooms();
         // for (int i = 0; i < rooms.size(); i++) {
