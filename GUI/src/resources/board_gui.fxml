@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<Pane maxHeight="825.0" maxWidth="1202.0" minHeight="789.0" minWidth="1100.0" prefHeight="809.0" prefWidth="1202.0" StackPane.alignment="TOP_LEFT" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1">
+      <children>
+      <StackPane maxHeight="750.0" maxWidth="1000.0" minHeight="750.0" minWidth="1000.0" prefHeight="750.0" prefWidth="1000.0" style="-fx-border-color: black;">
+         <children>
+               <ImageView fitHeight="749.0" fitWidth="998.0" pickOnBounds="true">
+                  <image>
+                     <Image url="@../imgs/board.jpg" />
+                  </image>
+               <StackPane.margin>
+                  <Insets />
+               </StackPane.margin>
+               </ImageView>
+         </children>
+         <padding>
+            <Insets bottom="1.0" left="2.0" right="2.0" top="2.0" />
+         </padding>
+      </StackPane>
+         <HBox layoutY="750.0" prefHeight="59.0" prefWidth="1000.0" style="-fx-background-color: gray; -fx-border-color: black;" />
+         <VBox layoutX="1000.0" layoutY="429.0" prefHeight="381.0" prefWidth="202.0" style="-fx-background-color: lightcoral; -fx-border-color: black;" />
+         <VBox layoutX="1000.0" prefHeight="429.0" prefWidth="202.0" style="-fx-background-color: lightgreen; -fx-border-color: black;" />
+      </children>
+   </Pane>
