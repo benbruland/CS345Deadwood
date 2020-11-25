@@ -8,6 +8,16 @@ import javafx.stage.StageStyle;
 public class Main extends Application {
 
     @Override
+    public void init() throws Exception {
+        System.out.println("Before runtime\n======================");
+    }
+
+    @Override
+    public void stop() throws Exception {
+        System.out.println("======================\nAfter runtime");
+    }
+
+    @Override
     public void start(Stage window) throws Exception{
         Parent root = FXMLLoader.load(getClass().getResource("resources/deadwood_setup.fxml"));
         Scene gameSetup = new Scene(root, 600, 400);

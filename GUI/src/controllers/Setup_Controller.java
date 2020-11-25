@@ -42,7 +42,7 @@ public class Setup_Controller {
 
     public void processPlayers(ActionEvent event) throws Exception{
         playerCount = (int) numPlayers.getValue();
-        initialize();
+        initializeTF();
         Stage prevWindow = (Stage) ((Node) event.getSource()).getScene().getWindow();
         prevWindow.close();
         Parent playerNames = FXMLLoader.load(getClass().getResource("../resources/playerNames.fxml"));
@@ -77,11 +77,8 @@ public class Setup_Controller {
 
     }
 
-    // TODO: Iterate through VBox TextFields, grab names (assign generic "Player" title if name left empty), and open Board game window
+    // TODO: Add fields for player data at bottom.
     public void startGame(ActionEvent event, ArrayList<TextField> userInput) throws Exception {
-        System.out.println("starting game");
-//        Stage setupWindow = (Stage) ((Node) event.getSource()).getScene().getWindow();
-//        Scene setupScene = setupWindow.getScene();
         List<String> lst = new ArrayList<String>();
         for (int i = 0; i < userInput.size(); i++){
             lst.add(userInput.get(i).getText());
@@ -106,7 +103,7 @@ public class Setup_Controller {
 
     }
 
-    private void initialize() {
+    private void initializeTF() {
         for(int i = 1; i <= playerCount; i++){
             TextField name = new TextField("Player " + i);
             nameList.add(name);
