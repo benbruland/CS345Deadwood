@@ -1,3 +1,4 @@
+//Authors: Benjamin Bruland, Lucas McIntosh
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.ParserConfigurationException;
@@ -172,7 +173,7 @@ public class XMLParser {
         NodeList roomData = roomNode.getChildNodes();
         ArrayList<String> neighbors = new ArrayList<String>();
         ArrayList<Role> offCardRoles = new ArrayList<Role>();
-        int numTakes = 1;
+        int numTakes = 0;
         boolean hasTakes = false;
         int listSize = roomData.getLength();
         GuiData data = new GuiData();

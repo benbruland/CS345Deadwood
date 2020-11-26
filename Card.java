@@ -1,6 +1,13 @@
+//Authors: Benjamin Bruland, Lucas McIntosh
 import java.util.ArrayList;
 
 public class Card {
+
+    // This BoardManager object is responsible for 
+    // controling the state of all game objects.
+    // The board manager is created in Deadwood.java
+    private static BoardManager boardManager = BoardManager.getInstance();
+
     private int cardBudget;
     private String cardName;
     private int cardScene;
@@ -78,4 +85,13 @@ public class Card {
     public void setImage(String img) {
         this.cardImage = img;
     }
+    
+    public void setBoardManager(BoardManager mngr) {
+		this.boardManager = mngr;
+	}
+
+	public BoardManager getBoardManager() {
+		return this.boardManager;
+	}
+
 }

@@ -1,6 +1,12 @@
+//Authors: Benjamin Bruland, Lucas McIntosh
 import java.util.ArrayList;
 
 public class Scene {
+
+	// This BoardManager object is responsible for 
+    // controling the state of all game objects.
+    // The board manager is created in Deadwood.java
+    private static BoardManager boardManager = BoardManager.getInstance();
 
 	static int scenesRemaining = 10;
 
@@ -97,7 +103,7 @@ public class Scene {
 		assert this.shotsRemaining >= 0 : "Shots remaining should be non-negative";
 	}
 
-	public int getShotCount() {
+	public int getShotsRemaining() {
 		assert shotsRemaining >= 0 : "Shots remaining should be non-negative.";
 		return this.shotsRemaining;
 	}
@@ -110,7 +116,6 @@ public class Scene {
 		/* Setting all roles refs associated to scene to unavailable / not working */
 		for(Player plyr : this.playersInScene){
 			plyr.setPlayerInRole(false);
-			plyr.setPlayerRole(null);
 		}
 		for(Role rl : this.getOffCardRoles()){
 			rl.setRoleAvailable(false);
@@ -118,7 +123,7 @@ public class Scene {
 		for(Role rl : this.getOnCardRoles()){
 			rl.setRoleAvailable(false);
 		}
-		decrementScenesRemaining();
+		
 	}
 
 	public void setShotsRemaining(int shots) {
@@ -129,8 +134,19 @@ public class Scene {
 		this.sceneCard = card;
 	}
 
+	public void removePlayerFromScene(Player ply) {
+		this.playersInScene.remove(ply);		
+	}
+
+	public void addPlayerToScene(Player ply) {
+		if (!this.playersInScene.contains(ply)) {
+			playersInScene.add(ply);
+		}
+	}
+
 	public void setSceneRoom(Room room) {
 		this.sceneRoom = room;
+		room.setRoomScene(this);
 	}
 
 	public Room getSceneRoom() {
@@ -141,11 +157,20 @@ public class Scene {
 		return scenesRemaining;
 	}
 
-	public static void setScenesRemaining(){
+	public static void setScenesRemaining() {
 		scenesRemaining = 10;
 	}
 
 	public void newDay(){
 		setScenesRemaining();
 	}
+
+	public void setBoardManager(BoardManager mngr) {
+		this.boardManager = mngr;
+	}
+
+	public BoardManager getBoardManager() {
+		return this.boardManager;
+	}
+
 }

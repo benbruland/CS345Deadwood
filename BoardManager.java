@@ -1,14 +1,20 @@
+//Authors: Benjamin Bruland, Lucas McIntosh
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Scanner;
 import java.util.Random;
 
-public class BoardManager{
+public final class BoardManager{
 
     /* Primitive Attributes */
-    private int numPlayers;
-    private int dayOfGame;
-    private int numberOfDays;
+    private int numPlayers;   
+    private int dayOfGame = 1;    // Current day of game
+    private int numberOfDays; // Total number of days to play
+    private int numberOfScenesRemaining; //number of scenes remaining in a particular day
+    
+    //BoardManager is a singleton class. This is the instance var
+    private static BoardManager instance;
 
     /* Non-Primitive Attributes */
     private Board gameBoard;
@@ -16,19 +22,35 @@ public class BoardManager{
 
 
     //TODO Implement Constructors
-    public BoardManager() {
+    private BoardManager() {
         this.numPlayers = 0;
         this.dayOfGame = 1;
         this.numberOfDays = 3;
     }
 
-    public BoardManager(int numPlyrs) {
+    private BoardManager(int numPlyrs) {
         assert numPlyrs >= 2 && numPlyrs <= 8 : "Invalid number of players: " + numPlyrs ;
         this.numPlayers = numPlyrs;
         this.numberOfDays = numPlyrs > 3 ? 4 : 3;
         this.dayOfGame = 1; 
         this.initBoard(numPlyrs);
         this.activePlayer = chooseFirstPlayer();
+    }
+
+    public static BoardManager getInstance(int numPlayers) {
+        
+        if (BoardManager.instance == null) {
+            BoardManager.instance = new BoardManager(numPlayers);
+        }
+
+        return BoardManager.instance;
+    }
+
+    public static BoardManager getInstance() {
+        if (BoardManager.instance == null) {
+            BoardManager.instance = new BoardManager();
+        } 
+        return BoardManager.instance;
     }
 
     private Player chooseFirstPlayer() {
@@ -55,7 +77,8 @@ public class BoardManager{
                 newPlayer.setRank(2);
         }
 
-        newPlayer.setPlayerRoom(this.gameBoard.getTrailers());
+        this.gameBoard.getTrailers().addPlayerToRoom(newPlayer);
+        newPlayer.setBoardManager(this);
         return newPlayer;
     }
 
@@ -69,7 +92,6 @@ public class BoardManager{
         XMLParser parser = new XMLParser();
         this.gameBoard = parser.parseBoard();
         Board board = this.gameBoard;
-
         ArrayList<Player> players = new ArrayList<Player>();
         
         for (int i = 0; i < numPlayers; i++) {
@@ -78,64 +100,46 @@ public class BoardManager{
         }
        
         board.setPlayers(players);
-        board.printBoard();
-        this.dealScenes(10);
-        // ArrayList<Room> rooms = this.getBoard().getRooms();
-        // for (int i = 0; i < rooms.size(); i++) {
-        //     rooms.get(i).getRoomScene().printScene();
-        // }
+        this.numberOfScenesRemaining = 10;
+        this.dealScenes(numberOfScenesRemaining);
     }
 
     public Player getActivePlayer() {
         return this.activePlayer;
     }
 
-    public int getCurrentDay(){
+    public int getCurrentDay() {
         return this.dayOfGame;
     }
 
-    /* Increments the day counter, checks for end of game, and returns winning player if game over and null if not. */
-    public Player cycleGameDay() {
-        assert this.dayOfGame >= 1 : "Invalid game day number: " + this.dayOfGame;
-        assert this.dayOfGame <= this.numberOfDays : "Invalid game day " + this.dayOfGame + " should be between 1 and " + this.numberOfDays;
-        this.dayOfGame += 1;
-        
-        /* Checking to see if game is over, no need to reset board for next day if so */
-        if(this.dayOfGame > this.numberOfDays){
-            Player p = scoreGame();
-            return p;
+    private void movePlayersTo(ArrayList<Player> plys, Room plyRoom) {
+        for (Player ply: plys) {
+            ply.setPlayerRoom(plyRoom);
         }
-        /* Removing scenes from previous day */
-        ArrayList<Room> rms = this.gameBoard.getBoardRooms();
-        for(Room rm : rms){
-            this.removeSceneFromRoom(rm);
-        }
-
-        /* Dealing scenes to each room */
-        this.dealScenes(10);
-
-
-        /* Returning players to Trailer room */
-        for(Player plyr : this.gameBoard.getPlayers()){
-            plyr.setPlayerRoom(this.gameBoard.getTrailers());
-        }
-        return null;
     }
 
-    /* Assumes that only one winner and will return the first player obj with "highest score", called in cycleGameDay() */
-    public Player scoreGame() {
-        ArrayList<Player> plyrs = gameBoard.getPlayers();
-        Player winner = null;
-        int maxScore = 0;
-
-        for(Player plyr : plyrs){
-            int temp = plyr.getPlayerCredits() + plyr.getPlayerDollars() + (plyr.getPlayerRank() * 5);
-            if(temp > maxScore){
-                maxScore = temp;
-                winner = plyr;
-            }    
+    private void resetOffCardRoles(Room plyRoom) {
+        ArrayList<Role> offCardRoles = plyRoom.getOffCardRoles();
+        for (Role plyRole: offCardRoles) {
+            plyRole.setRoleAvailable(true);
         }
-        return winner;
+    }
+
+    /* Increments the day counter, checks for end of game, and returns winning player if game over and null if not. */
+    public boolean cycleGameDay() {
+        boolean gameFinished = false;
+        ArrayList<Room> rooms = this.getBoard().getBoardRooms();
+        if (this.getCurrentDay() == numberOfDays) {
+            gameFinished = true;
+        } else {
+            this.movePlayersTo(this.getBoard().getPlayers(),this.getBoard().getTrailers());
+            this.dealScenes(10);
+            this.dayOfGame++;
+            for (Room plyRoom: rooms) {
+                resetOffCardRoles(plyRoom);
+            }
+        }
+        return gameFinished;
     }
 
     // Returns a random integer in range [min, max]
@@ -147,373 +151,86 @@ public class BoardManager{
         return randomNum;
     }
 
-    public void payBonuses(Scene sceneToPayout) {
-        ArrayList<Integer> dieRolls = new ArrayList<Integer>();
-			for(int i = 0; i < this.activePlayer.getPlayerCard().getBudget(); i++){
-				dieRolls.add(this.activePlayer.rollDice(6));
-			}
-			Collections.sort(dieRolls);
-			int topRolePayout = 0;
-			int middleRolePayout = 0;
-			int bottomRolePayout = 0;
-			int j = 0;
+    public int calculatePlayerScore(Player ply) {
+        return ply.getPlayerCredits() + ply.getPlayerDollars() + (ply.getPlayerRank() * 5);
+    }
+    //  Function returns an array list of winners. It returns an array list
+    //  because it is possible to tie this game.
+    public ArrayList<Player> scoreGame() {
+        ArrayList<Player> plyrs = this.gameBoard.getPlayers();
+        ArrayList<Player> winners = new ArrayList<Player>();
+        int maxScore = -1;
 
-			/* Loop collecting on card bonuses into top, middle, and bottom */
-			for(int i = dieRolls.size() - 1; i >= 0; i--){
-				j++;
-				if(j == 1){
-					topRolePayout += dieRolls.get(i);
-				}
-				else if (j == 2){
-					middleRolePayout += dieRolls.get(i);
-				}
-				else{
-					bottomRolePayout += dieRolls.get(i);
-					j = 0;
-				}
-			}
+        for(Player plyr : plyrs){
+            int playerScore = calculatePlayerScore(plyr);
+            if(playerScore > maxScore){
+                maxScore = playerScore;
+            }    
+        }
 
-			/* Giving bonuses to on card players */
-			for(Player plyr : this.activePlayer.getPlayerRoom().getRoomScene().getPlayersOnCard()){
-				if(plyr.getRole().getRoleID() == 2){ //Highest Ranking Role
-					plyr.setPlayerDollars(plyr.getPlayerDollars() + topRolePayout);
-				}
-				else if(plyr.getRole().getRoleID() == 1){ //Middle Ranking Role
-					plyr.setPlayerDollars(plyr.getPlayerDollars() + middleRolePayout);
-				}
-				else { //Lowest Ranking Role
-					plyr.setPlayerDollars(plyr.getPlayerDollars() + bottomRolePayout);
-				}
-			}
+        for (Player plyr: plyrs) {
+            int playerScore = calculatePlayerScore(plyr);
+            if (playerScore == maxScore) {
+                winners.add(plyr);
+            }
+        }
 
-			/* Giving bonuses to off card players */
-			for(Player plyr : this.activePlayer.getPlayerRoom().getRoomScene().getPlayersOffCard()){
-				plyr.setPlayerDollars(plyr.getPlayerDollars() + plyr.getRole().getRoleLevel());
-			}
+        return winners;
     }
 
-    public void awardPlayer(Player plyr) {
-        if(plyr.getRole().getIsOnCardRole()){ // On card role
-            plyr.setPlayerCredits(plyr.getPlayerCredits() + 2);
-            plyr.getPlayerRoom().getRoomScene().removeShotCounter();
+    private ArrayList<Integer> getBonusDice(int budget) {
+        
+        ArrayList<Integer> diceRolls = new ArrayList<Integer>();
+        for (int i = 0; i < budget; i++) {
+            diceRolls.add(randInt(1,6));
         }
-        else { // Off card role
-            plyr.setPlayerDollars(plyr.getPlayerCredits() + 1);
-            plyr.setPlayerCredits(plyr.getPlayerCredits() + 1);
+        return diceRolls;
+    }
+    
+    public void payBonuses(Room roomToPayout) {
+        Card roomCard = roomToPayout.getRoomScene().getSceneCard();
+        int budget = roomCard.getBudget();
+        ArrayList<Player> offCardPlayers = roomToPayout.getPlayersOffCard();
+        ArrayList<Player> onCardPlayers = roomToPayout.getPlayersOnCard();
+        onCardPlayers.sort((Player a, Player b) -> compareRoles(a.getRole(), b.getRole()));
+        
+        if (onCardPlayers.size() != 0) {
+            
+            ArrayList<Integer> diceRolls = getBonusDice(budget);
+            diceRolls.sort(Collections.reverseOrder());
+            int diceCounter = 0;
+
+            for (int i = 0; i < diceRolls.size(); i++) {
+                Player onCardPlayer = onCardPlayers.get(diceCounter % onCardPlayers.size());
+                onCardPlayer.setPlayerDollars(onCardPlayer.getPlayerDollars() + diceRolls.get(i));
+            }
+
+            for (int i = 0; i < offCardPlayers.size(); i++) {
+                Player offCardPlayer = offCardPlayers.get(i);
+                offCardPlayer.setPlayerDollars(offCardPlayer.getPlayerDollars() + offCardPlayer.getRole().getRoleLevel());
+            }
+        }
+        
+    }
+
+    // This will be called when a player acts on a role regardless of the outcome
+    // It is responsible for awarding the player credits / dollars based on the rules of the game.
+    public void awardPlayer(boolean actSuccess, Player plyr) {
+        if (actSuccess) {
+            if (plyr.getRole().getIsOnCardRole()) {
+                plyr.setPlayerCredits(plyr.getPlayerCredits() + 2);
+            } else {
+                plyr.setPlayerDollars(plyr.getPlayerDollars() + 1);
+                plyr.setPlayerCredits(plyr.getPlayerCredits() + 1);
+            }
             plyr.getPlayerRoom().getRoomScene().removeShotCounter();
+        } else if (!actSuccess && !plyr.getRole().getIsOnCardRole()) {
+            plyr.setPlayerDollars(plyr.getPlayerDollars() + 1);
         }
     }
 
     public void setActivePlayer(Player plyr) {
         this.activePlayer = plyr;
-    }
-
-    /* returns true on successful action completion and false if not */
-    public boolean promptActionInRole(Scanner playerChoice, Player plyr){
-        String action = "";
-        boolean retVal = false;
-        System.out.println("Type one of the following options to perform for your turn:\n\t 1. Rehearse\n\t 2. Act");
-        System.out.print("Input: ");
-        action = playerChoice.next();
-        System.out.println();
-        switch(action){
-            case "Rehearse":
-            case "rehearse":
-            case "1":
-            case "1.":
-                retVal = plyr.performRehearse();
-                if(retVal){
-                    System.out.println("Rehearse successful.");
-                }
-                assert retVal == true: "Rehearsal should never be unsuccessful";
-                return true;
-            case "Act":
-            case "act":
-            case "2.":
-            case "2":
-                retVal = plyr.performAct();
-                if(retVal){
-                    System.out.println("Act successful.");
-                    awardPlayer(plyr);
-                    /* Last shot counter has been removed, leaving 0 left */
-                    if(plyr.getPlayerRoom().getRoomScene().getShotCount() == 0){
-                        System.out.println("Last shot counter for scene removed!");
-                        /* At least one player occupies on card role */
-                        if(!plyr.getPlayerRoom().getRoomScene().getPlayersOnCard().isEmpty()){
-                            System.out.println("Paying bonuses to players on finished scene.");
-                            payBonuses(plyr.getPlayerRoom().getRoomScene());
-                        }
-                        else{
-                            System.out.println("Scene has no on-card players, so no bonuses will be paid.");
-                        }
-                    }
-                }
-                else {
-                    System.out.println("Act unsuccessful.");
-                    if(!plyr.getRole().getIsOnCardRole()){
-                        System.out.println("Player has off card role and is awarded one dollar.");
-                        plyr.setPlayerDollars(plyr.getPlayerDollars() + 1);
-                    }
-                }
-                return true;
-            default:
-                System.out.println("Invalid selection entered.");
-                return false;
-        }
-    }
-
-    /* returns true on successful action completion and false if not */
-    public boolean promptActionNotInRole(Scanner playerChoice, Player plyr){
-        System.out.println("==========================================================\n\t PLAYER OPTIONS \n\t\t 1. Move \n\t\t 2. Upgrade \n\t\t 3. Take Role \n");
-        System.out.println("Enter the option number for which action you would like to take for your turn (ex. \"3\" or \"Move\"). \n");
-        System.out.print("Input: ");
-        String action = playerChoice.nextLine();
-        System.out.println();
-        boolean retVal = false;
-        switch(action){
-            case "Move":
-            case "move":
-            case "1.":
-            case "1":
-            System.out.println("==========================================================\n\t ROOM CHOICES \n");
-                System.out.println("Room choices: ");
-                ArrayList<Room> allRms = this.gameBoard.getBoardRooms();
-                ArrayList<String> adjRms = plyr.getPlayerRoom().getNeighbors();
-                int j;
-                for(j = 0; j < adjRms.size(); j++){
-                    System.out.println("\t\t" + (j+1) + ". " + adjRms.get(j));
-                }
-                System.out.println("Which room option would you like to move to from the list above? (provide number, ex: \"1\")\n");
-                try{
-                    action = playerChoice.nextLine();
-                    System.out.println();
-                    j = Integer.parseInt(action) - 1;
-                } catch (Exception e){
-                    System.out.println("User input is NaN.");
-                    return false;
-                }
-                String desiredRoomName = adjRms.get(j);
-                for(Room rm : allRms){
-                    if(rm.getRoomName().equals(desiredRoomName)){
-                        Room desiredRoom = rm;
-                        System.out.println("Performing move on player to room " + rm.getRoomName());
-                        retVal = plyr.performMove(desiredRoom);
-                        if(retVal){
-                            System.out.println("Move successful.");
-                            return true;
-                        }
-                        else{
-                            System.out.println("Move unsuccessful.");
-                            return false;
-                        }
-                    }
-                }
-                System.out.println("Room name not found in roomList");
-                return false;
-            case "Upgrade":
-            case "upgrade":
-            case "2.":
-            case "2":
-                if(plyr.getPlayerRoom() != this.gameBoard.getCastingOffice()){
-                    System.out.println("Player is not in Casting Office and cannot upgrade.");
-                    break;
-                }
-                boolean validUpgrade = false;
-                System.out.println("==========================================================\n\t UPGRADE LIST \n\t\t 2. Rank 2, Costs 4 dollars & 5 credits \n\t\t 3. Rank 3, Costs 10 dollars & 10 credits \n\t\t 4. Rank 4, Costs 18 dollars & 15 credits \n\t\t 5. Rank 5, Costs 28 dollars & 20 credits \n\t\t 6. Rank 2, Costs 40 dollars & 25 credits \n==========================================================");
-                System.out.println("Enter the option number for which upgrade you would like to purchase (ex. \"2\"");
-                String upgradeChoice = playerChoice.nextLine();
-                int selection = -1;
-                try{
-                    selection = Integer.parseInt(upgradeChoice);
-                } catch (Exception e){
-                    System.out.println("User input is NaN.");
-                    return false;
-                }
-                assert selection != -1: "Invalid upgrade selection";
-                validUpgrade = plyr.performUpgrade(selection, this.gameBoard.getCreditUpgradeCost(selection), this.gameBoard.getDollarUpgradeCost(selection));
-                if(validUpgrade){
-                    System.out.println("Upgrade to rank " + selection + " was successful.");
-                    return true;
-                }
-                else{
-                    System.out.println("Invalid upgrade; Not enough dollars or credits for upgrade");
-                    return false;
-                }
-            case "Take Role":
-            case "take role":
-            case "Take":
-            case "take":
-            case "Role":
-            case "role":
-            case "3.":
-            case "3":
-                try{    
-                    ArrayList<Role> offCard = plyr.getPlayerRoom().getOffCardRoles();
-                    ArrayList<Role> onCard = plyr.getPlayerCard().getRoles();
-                    ArrayList<Role> availableRoles = new ArrayList<Role>();
-                    int i = 0;
-                    boolean validRole = false;
-                    for(Role rl : onCard){
-                        if(rl.getRoleAvailable()){
-                            availableRoles.add(rl);
-                        }
-                    }
-                    for(Role rl : offCard){
-                        if(rl.getRoleAvailable()){
-                            availableRoles.add(rl);
-                        }
-                    }
-                    System.out.println("==========================================================\n\t\t AVAILABLE ROLES");
-                    for(Role rl : availableRoles){
-                        System.out.println((i++) + 1 + ". " + rl.getRoleName() + ", Rank: " + rl.getRoleLevel() + (rl.getIsOnCardRole()? ", on card." : ", off card."));
-                    }
-                    System.out.println("==========================================================");
-                    System.out.println("Which role would you like to take?\n");
-                    System.out.print("Input: ");
-                    action = playerChoice.nextLine();
-                    System.out.println();
-                    try{
-                        i = Integer.parseInt(action) - 1;
-                        if(availableRoles.get(i).getIsOnCardRole()){
-                            validRole = plyr.performChooseRole(availableRoles.get(i).getRoleID(), true);
-                        }
-                        else {
-                            validRole = plyr.performChooseRole(availableRoles.get(i).getRoleID(), false);
-                        }
-                    } catch (Exception e){
-                        System.out.println("User input is NaN.");
-                        return false;
-                    }
-                    if(validRole){
-                        System.out.println("Role \"" + availableRoles.get(i).getRoleName() + "\" successfully taken.");
-                        return true;
-                    }
-                    else {
-                        System.out.println("Invalid role selection, rank not high enough.");
-                    }
-                } catch (Exception e){
-                    System.out.println("No Roles for this room.");
-                }
-            default:
-                System.out.println("Invalid choice, please make another selection.");
-                return false;
-        }
-        return false;
-    }
-
-    /* Prompts player for turn choices, returns true if game over and false if not */
-    public void doPlayerTurn(Scanner playerChoice, Player plyr) {
-        boolean validChoice = false;
-        if(plyr.getPlayerInRole()){
-            while (!validChoice){
-                validChoice = promptActionInRole(playerChoice, plyr);
-                if(validChoice){ 
-                    System.out.println("Success!"); 
-                    return;
-                }
-                else{
-                    System.out.println("Failure, try again!");
-                }
-            }
-        }
-        else{
-            while (!validChoice){
-                validChoice = promptActionNotInRole(playerChoice, plyr);
-                if(validChoice){ 
-                    System.out.println("Success!"); 
-                    if(plyr.getPlayerRoom().getRoomName() != "office" && !plyr.getPlayerInRole()){
-                        validChoice = takeRolePrompt(playerChoice, plyr);
-
-                    }
-                
-                    return;
-                }
-                else{
-                    System.out.println("Failure, try again!");
-                }
-            }
-        }
-    }
-
-    public boolean takeRolePrompt(Scanner playerChoice, Player plyr){
-        System.out.println("Would you like to take a role? (ex. \"Y/N\" or \"yes/no\"\n");
-        System.out.print("Input: ");
-        String action = playerChoice.nextLine();
-        System.out.println();
-        boolean validChoice = false;
-        while(!validChoice){
-            switch(action){
-                case "Yes":
-                case "yes":
-                case "Y":
-                case "y":
-                    try{    
-                        ArrayList<Role> offCard = plyr.getPlayerRoom().getOffCardRoles();
-                        ArrayList<Role> onCard = plyr.getPlayerCard().getRoles();
-                        ArrayList<Role> availableRoles = new ArrayList<Role>();
-                        int i = 0;
-                        boolean validRole = false;
-                        for(Role rl : onCard){
-                            if(rl.getRoleAvailable()){
-                                availableRoles.add(rl);
-                            }
-                        }
-                        for(Role rl : offCard){
-                            if(rl.getRoleAvailable()){
-                                availableRoles.add(rl);
-                            }
-                        }
-                        System.out.println("==========================================================\n\t\t AVAILABLE ROLES");
-                        for(Role rl : availableRoles){
-                            System.out.println((i++) + 1 + ". " + rl.getRoleName() + ", Rank: " + rl.getRoleLevel() + (rl.getIsOnCardRole()? ", on card." : ", off card."));
-                        }
-                        System.out.println("==========================================================");
-                        System.out.println("Which role would you like to take?\n");
-                        System.out.print("Input: ");
-                        action = playerChoice.nextLine();
-                        System.out.println();
-                        try{
-                            i = Integer.parseInt(action) - 1;
-                            if(availableRoles.get(i).getIsOnCardRole()){
-                                validRole = plyr.performChooseRole(availableRoles.get(i).getRoleID(), true);
-                            }
-                            else {
-                                validRole = plyr.performChooseRole(availableRoles.get(i).getRoleID(), false);
-                            }
-                        } catch (Exception e){
-                            System.out.println("User input is NaN.");
-                            return false;
-                        }
-                        if(validRole){
-                            System.out.println("Role \"" + availableRoles.get(i).getRoleName() + "\" successfully taken.");
-                            return true;
-                        }
-                        else {
-                            System.out.println("Invalid role selection, rank not high enough.");
-                        }
-                        validChoice = true;
-                    } catch (Exception e){
-                        System.out.println("No Roles for this room.");
-                        return false;
-                    }
-                    break;
-                case "No":
-                case "no":
-                case "N":
-                case "n":
-                    System.out.println("Player chose to not take a role.");
-                    validChoice = true;
-                    break;
-                default:
-                    System.out.println("Invalid selection.\n");
-                    System.out.println("Would you like to take a role as well? (ex. \"Y/N\" or \"yes/no\")\n");
-                    System.out.print("Input: ");
-                    action = playerChoice.nextLine();
-                    System.out.println();
-                    break;
-            }
-        }
-        return validChoice;
     }
 
     public Board getBoard() {
@@ -576,6 +293,7 @@ public class BoardManager{
         for (int i = 0; i < numScenes; i++) {
             Scene randScene = new Scene();
             randScene.setSceneCard(this.getDeck().get(i));
+            randScene.setBoardManager(this);
             randomScenes.add(randScene);
             this.removeCardFromDeck(i);
         }
@@ -588,6 +306,12 @@ public class BoardManager{
         return randomScenes;
     }
 
+    public void setPlayerRole(Player ply, Role role) {
+        ply.setRole(role);
+        role.setRoleAvailable(false);
+    }
+
+
     // This function ensures that the scene's pointer to its room
     // and the room's pointer to its scene are respectively correct / synced.
     private void assignSceneToRoom(Scene scene, Room room) {
@@ -596,12 +320,9 @@ public class BoardManager{
         scene.setShotsRemaining(room.getNumTakes());
     }
 
-    // This function ensures that the scene's pointer to its room
-    // and the room's pointer to its scene are respectively correct / synced.
-    private void removeSceneFromRoom(Room room) {
-        Scene roomScene = room.getRoomScene();
-        room.setRoomScene(null);
-        roomScene.setSceneRoom(null);
+    
+    private int compareRoles(Role a, Role b) {
+        return  a.getRoleLevel() - b.getRoleLevel();
     }
 
     public ArrayList<Role> getAvailableRoles(Scene scene) {
@@ -622,11 +343,338 @@ public class BoardManager{
                 availableRoles.add(offCardRole);
             }
         }
-        
+        availableRoles.sort((Role a, Role b) -> compareRoles(a,b));
         return availableRoles;
     }
 
-    private void dealScenes(int numScenes) {
+    public String getActionChoice(ArrayList<String> actions, Scanner choiceScanner) {
+        String choice = "default";
+        int actionIndex;
+        boolean validChoice = false;
+        boolean indexInRange = false;
+        while (!validChoice) {
+            choice = choiceScanner.next();
+            actionIndex = stringIsNumeric(choice) ? Integer.parseInt(choice) : -1;
+            indexInRange = actionIndex >= 1 && actionIndex <= actions.size();
+            
+            if (indexInRange) {
+                choice = actions.get(actionIndex-1);
+            }
+
+            validChoice = indexInRange;
+        }
+        return choice;
+    } 
+
+    public void doPlayerTurn(Player ply) {
+        
+        boolean done = false;
+        Scanner choiceScanner = new Scanner(System.in);
+        String choice = "";
+        ArrayList<String> validActions = getValidActions(ply);
+        boolean endOfDay = this.numberOfScenesRemaining == 1;
+        while (!done && !endOfDay) {
+            ply.printPlayer();    
+            printAvailableActions("",validActions);
+            System.out.println("Enter a valid action as a number: ");
+
+            choice = getActionChoice(validActions, choiceScanner);
+
+            done = doAction(ply, choice, choiceScanner);
+            validActions = registerAction(validActions, ply, choice);
+        }
+    }
+    
+    public boolean doAction(Player ply, String choice, Scanner choiceScanner) {
+        boolean turnFinished = false;
+        switch (choice) {
+            case "move":
+                doMoveIo(choiceScanner, ply);
+                break;
+            case "upgrade":
+                doUpgradeIo(ply, choiceScanner);
+                
+                break;
+            case "rehearse":
+                doRehearseIo(ply);
+                break;
+            case "act":
+                doActIo(ply);
+                break;
+            case "take role":
+                doTakeRoleIo(ply, choiceScanner);
+                break;
+            case "end":
+                turnFinished = true;
+                break;
+            default:
+                System.out.println("doAction: Arrived at default case");
+        }
+        return turnFinished;
+    }
+
+    //This modifies the pool of valid actions that a player can perform. It maintains 2a list
+    //of actions a player may perform based on their previous actions.
+    public ArrayList<String> registerAction(ArrayList<String> actions, Player ply, String chosenAction) {
+        Room playerRoom = ply.getPlayerRoom();
+        Room castingOffice = this.getBoard().getCastingOffice();
+        Room trailers = this.getBoard().getTrailers();
+
+        if (actions.contains(chosenAction)) {
+            actions.remove(chosenAction);
+        }
+        
+        if (chosenAction.equals("move")) {
+            if (playerRoom != castingOffice && playerRoom != trailers) {
+                if (!actions.contains("take role") && getAvailableRoles(playerRoom.getRoomScene()).size() != 0) {
+                    actions.add("take role");
+                }
+                actions.remove("upgrade");
+            } else if (playerRoom == castingOffice || playerRoom == trailers) {
+                actions.remove("take role");
+            }
+        } else if (chosenAction.equals("rehearse")) {
+            actions.remove("act");
+        } else if (chosenAction.equals("act")) {
+            actions.remove("rehearse");
+        } else if (chosenAction.equals("upgrade")) {
+            actions.remove("move");
+        } else if (chosenAction.equals("take role")) {
+            actions.remove("move");
+        }
+
+
+        return actions;
+    }
+    
+    private ArrayList<String> getAvailableRanks(int playerRank) {
+        System.out.println("Available Ranks: ");
+        int maxRank = 6;
+        ArrayList<String> rankChoices = new ArrayList<String>();
+        for (int i = playerRank+1; i <= maxRank; i++) {
+            rankChoices.add(String.valueOf(i));
+        }
+        return rankChoices;
+    }
+
+    private void printAvailableRanks(int playerRank) {
+        int maxRank = 6;
+
+        for (int i = playerRank+1; i <= maxRank; i++) {
+            int creditCost = this.getBoard().getCreditUpgradeCost(i);
+            int dollarCost = this.getBoard().getDollarUpgradeCost(i);
+            System.out.printf("Rank %d: \n\t* Credits: %d\n\t* Dollars: %d\n", i, creditCost, dollarCost);
+        }
+    }
+
+    public void doUpgradeIo(Player ply, Scanner choiceScanner) {
+        int maxRank = 6;
+        int playerRank = ply.getPlayerRank();
+        
+        ArrayList<String> currencyChoices = new ArrayList<String>(Arrays.asList("credits", "dollars"));
+        ArrayList<String> rankChoices = getAvailableRanks(ply.getPlayerRank());
+
+        if (playerRank < maxRank) {
+            
+            System.out.println("Enter a choice of rank as a number.\n");
+            printAvailableActions("Rank ", rankChoices);
+            boolean chooseRank = true;
+            while (chooseRank) {
+                printAvailableRanks(ply.getPlayerRank());
+                System.out.printf("Player Dollars: %d Player Credits: %d\n", ply.getPlayerDollars(), ply.getPlayerCredits());
+                String rankChoice = getActionChoice(rankChoices, choiceScanner);
+                int rank = Integer.parseInt(rankChoice);
+                boolean canUpgrade = false;
+                System.out.println("Select currency to use: ");
+                printAvailableActions("Currency ", currencyChoices);
+                
+                String currencyChoice = getActionChoice(currencyChoices, choiceScanner);
+                
+                if (currencyChoice.equals("dollars")) {
+                    canUpgrade = ply.upgrade(rank, ply.getPlayerDollars(), 0);
+                } else {
+                    canUpgrade = ply.upgrade(rank, 0, ply.getPlayerCredits());
+                }
+
+                if (!canUpgrade) {
+                    System.out.println("Insufficient funds! Try again? Y/n?");
+                    chooseRank = choiceScanner.next().toLowerCase().contains("y");
+                } else {
+                    chooseRank = false;
+                }
+            } // end rank choosing loop
+        } // end max rank check
+    } // End upgradeIo
+
+    public void doMoveIo(Scanner choiceScanner, Player ply) {
+        ArrayList<String> neighboringRooms = ply.getPlayerRoom().getNeighborNames();
+        System.out.println("Enter desired room as a number:");
+        printAvailableActions("",neighboringRooms);
+        String roomChoice = getActionChoice(neighboringRooms, choiceScanner);
+        ply.move(this.getBoard().getRoomByName(roomChoice));
+    }
+
+    //Prints a list of role objects.
+    public void printRoles(ArrayList<Role> roleList) {
+        int roleNum = 1;
+        for (Role r: roleList) {
+            System.out.print(roleNum + ". ");
+            r.printRole();
+            roleNum++;
+        }
+    }
+
+    private boolean stringIsNumeric(String input) {
+        
+        try {
+            Integer.parseInt(input);
+        } catch (NumberFormatException exc) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public void doTakeRoleIo(Player ply, Scanner choiceScanner) {
+        Room plyRoom = ply.getPlayerRoom();
+        ArrayList<Role> roles = this.getAvailableRoles(plyRoom.getRoomScene());
+        boolean choiceValid = false;
+        int choice = -1;
+        System.out.println("Enter role selection as a number\n\t* Enter any character other than a valid selection to escape role selection.");
+        System.out.println("Available roles:");
+        this.printRoles(roles);
+        while (!choiceValid) {
+            String number = choiceScanner.next();
+            choice = stringIsNumeric(number) ? Integer.parseInt(number):-1;
+            boolean choiceInValidRange = (choice >= 1) && (choice <= roles.size());
+            boolean roleIsAvailable = choiceInValidRange ? roles.get(choice-1).getRoleAvailable() : false;
+
+            if (choiceInValidRange && roleIsAvailable && ply.playerCanTakeRole(roles.get(choice-1))) {
+                this.setPlayerRole(ply, roles.get(choice-1));
+                ply.setRehearsalBonus(0);
+                ply.getRole().printRole();
+                choiceValid = true;   
+            } else {
+                System.out.println("Invalid choice");
+                System.out.println("Choose a different role? y/n: ");
+                choiceValid = !choiceScanner.next().toLowerCase().equals("y");
+                if (!choiceValid) {
+                    System.out.println("Enter choice as a number.");
+                }
+            }
+        }
+    }
+
+    public boolean doActIo(Player ply) {
+        boolean actSuccess = ply.act();
+        Room room = ply.getPlayerRoom();
+        System.out.println("Card: " + room.getRoomScene().getSceneCard().getName());
+        if (actSuccess) {
+            System.out.printf("%s acted successfully on role: %s\n", ply.getName(), ply.getRole().getRoleName());
+        } else {
+            System.out.println("Acting not successful.");
+        }
+        
+
+        if (room.getRoomScene().getShotsRemaining() == 0) {
+            System.out.println("Room's scene is finished! Awarding bonuses!\n");
+            
+            this.payBonuses(room);
+            this.finishRoomScene(room);
+            System.out.println("Scenes remaining: " + this.numberOfScenesRemaining);
+            System.out.println("Game Day: " + this.dayOfGame);
+        }
+
+        return actSuccess;
+    }
+
+    private void finishRoomScene(Room room) {
+        ArrayList<Role> offCards = room.getOffCardRoles();
+        ArrayList<Role> onCards = room.getRoomScene().getOnCardRoles();
+
+        ArrayList<Player> playersInRoom = room.getPlayersInRoom();
+        for (Player p: playersInRoom) {
+            p.setPlayerInRole(false);
+        }   
+        
+        for (Role plyRole: onCards) {
+            plyRole.setRoleAvailable(false);
+        }
+
+        for (Role plyRole: offCards) {
+            plyRole.setRoleAvailable(false);
+        }
+
+        this.numberOfScenesRemaining--;
+    }
+
+    public boolean doRehearseIo(Player ply) {
+        boolean rehearseSuccess = ply.rehearse();
+        if (!rehearseSuccess) {
+            System.out.println("Rehearsal is not permitted, the player has a 100% chance to act successfully.");
+            System.out.println("Acting for " + ply.getName() + ".");
+            doActIo(ply);
+        } else {
+            System.out.println("Player rehearsal bonus now: " + ply.getRehearsalBonus());
+        }
+
+        if (ply.getPlayerRoom().getRoomScene().getShotsRemaining() == 0) {
+            System.out.println("Scene finished! Paying out bonuses.");
+        }
+
+        return rehearseSuccess;
+    }
+
+    public void printAvailableActions(String prefix, ArrayList<String> actions) {
+        System.out.println("Valid Actions: ");
+        int actionNum = 1;
+        for (String action: actions) {
+            System.out.printf("\t* %d. %s%s\n", actionNum,  prefix,  action);
+            actionNum++;
+        }
+    }
+
+    // Based on which room a player is in, there is a set of valid actions
+    // a player may perform. This function returns those actions as an array list
+    // of strings. This function is intended to be called before the player has performed
+    // any actions once per doPlayerTurn(). 
+    //registerAction shall then be used to remove actions from the valid pool. 
+
+    public ArrayList<String> getValidActions(Player ply) {
+        Room castingOffice = this.getBoard().getCastingOffice();
+        Room trailers = this.getBoard().getTrailers();
+        Room playerRoom = ply.getPlayerRoom();
+        ArrayList<String> actions = new ArrayList<String>();
+        actions.add("end");
+        if (!ply.getPlayerInRole()) {
+           actions.add("move");
+           
+            if (playerRoom != castingOffice && playerRoom != trailers && playerRoom.getRoomScene() != null){
+                if (getAvailableRoles(playerRoom.getRoomScene()).size() != 0) {
+                    actions.add("take role");
+                }
+            }
+        } else {
+            Scene plyScene = ply.getPlayerRoom().getRoomScene();
+            if (plyScene != null && plyScene.getShotsRemaining() > 0) {
+                actions.add("act");
+                actions.add("rehearse");
+            }
+        }
+
+        int maxRank = 6;
+        if (playerRoom == castingOffice && ply.getPlayerRank() < maxRank) {
+            actions.add("upgrade");
+        }
+
+        return actions;
+    }
+
+    public int getNumberOfScenesRemaining() {
+        return this.numberOfScenesRemaining;
+    }
+
+    public void dealScenes(int numScenes) {
         ArrayList<Room> rooms = this.gameBoard.getRooms();
         
         // It should be noted that not all rooms are contained within the board object
@@ -639,10 +687,11 @@ public class BoardManager{
         for (int i = 0; i < numScenes; i++) {
             Scene roomScene = randomScenes.get(i);
             Room dealRoom = rooms.get(i);
+            assert roomScene != null : "Do not assign null scenes to a room object";
             assignSceneToRoom(roomScene, dealRoom);
         }
-        /* resets scenes remaining counter in Scene.java */
-        randomScenes.get(0).newDay();
+
+        this.numberOfScenesRemaining = numScenes;
     }
 
 }

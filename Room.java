@@ -2,6 +2,12 @@ import java.util.ArrayList;
 
 public class Room {
 
+
+	    // This BoardManager object is responsible for 
+    // controling the state of all game objects.
+    // The board manager is created in Deadwood.java
+    private static BoardManager boardManager = BoardManager.getInstance();
+
 	/* Primitive Attributes */
 	private int roomID;
 	private int numTakes;
@@ -39,6 +45,7 @@ public class Room {
 		this.neighbors = roomList;
 		this.offCardRoles = offCards;
 		this.numTakes = takes;
+		assert takes >= 0 && takes < 4 : "Invalid number of shots for room : " + name;
 		this.playersInRoom = new ArrayList<Player>();
 	}
 
@@ -101,7 +108,72 @@ public class Room {
 		return this.offCardRoles;
 	}
 
-	public ArrayList<String> getNeighbors() {
+	//Assumes the room has been assigned a scene and roles
+	public ArrayList<Role> getAllRoles() {
+
+		Card roomCard = this.getRoomScene().getSceneCard();
+		ArrayList<Role> offCardRoles = this.getOffCardRoles();
+        ArrayList<Role> onCardRoles = roomCard.getRoles();
+        ArrayList<Role> roomRoles = new ArrayList<Role>();
+		roomRoles.addAll(onCardRoles);
+		roomRoles.addAll(offCardRoles);
+		return roomRoles;
+	}
+
+	public ArrayList<Player> getPlayersOffCard() {
+		ArrayList<Player> players = this.getPlayersInRoom();
+		ArrayList<Role> offCardRoles = this.getOffCardRoles();
+		ArrayList<Player> playersOffCard = new ArrayList<Player>();
+		for (Player ply: players) {
+			if (ply.getPlayerInRole() && offCardRoles.contains(ply.getRole())) {
+				playersOffCard.add(ply);
+			}
+		}
+
+		return playersOffCard;
+	}
+
+	public ArrayList<Player> getPlayersOnCard() {
+		ArrayList<Player> players = this.getPlayersInRoom();
+		ArrayList<Role> onCardRoles = this.getRoomScene().getSceneCard().getRoles();
+		ArrayList<Player> playersOnCard = new ArrayList<Player>();
+		for (Player ply: players) {
+			if (ply.getPlayerInRole() && onCardRoles.contains(ply.getRole())) {
+				playersOnCard.add(ply);
+			}
+		}
+
+		return playersOnCard;
+	}
+
+	public ArrayList<Room> getNeighbors() {
+		BoardManager manager = BoardManager.getInstance();
+		ArrayList<Room> rooms = manager.getBoard().getRooms();
+		ArrayList<Room> roomNeighbors = new ArrayList<Room>();
+		
+		Room castingOffice = manager.getBoard().getCastingOffice();
+		Room trailers = manager.getBoard().getTrailers();
+		ArrayList<String> neighborNames = this.neighbors;
+
+		for (int i = 0; i < rooms.size(); i++) {
+			if (neighborNames.contains(rooms.get(i).getRoomName())) {
+				roomNeighbors.add(rooms.get(i));
+			}
+		}
+
+		if (castingOffice.getNeighborNames().contains(this.roomName)) {
+			roomNeighbors.add(castingOffice);
+		}
+
+		if (trailers.getNeighborNames().contains(this.getRoomName())) {
+			roomNeighbors.add(trailers);
+		}
+		
+		return roomNeighbors;
+
+	}
+
+	public ArrayList<String> getNeighborNames() {
 		return this.neighbors;
 	}
 
@@ -138,12 +210,21 @@ public class Room {
 	}
 
 	public boolean addPlayerToRoom(Player plyr) { 
-		if(!playersInRoom.contains(plyr)) {
-			plyr.setPlayerRoom(this);
+		boolean playerInRoom = playersInRoom.contains(plyr);
+		if(!playerInRoom) {
 			playersInRoom.add(plyr);
-			return true;
 		}
-		return false;
+		return playerInRoom;
+	}
+
+	public boolean roomContainsPlayer(int plyId) {
+		ArrayList<Player> plys = BoardManager.getInstance().getBoard().getPlayers();
+		Player ply = plys.get(plyId);
+		return this.playersInRoom.contains(ply);
+	}
+
+	public boolean roomContainsPlayer(Player ply) {
+		return this.playersInRoom.contains(ply);
 	}
 
 	public boolean removePlayerFromRoom(Player plyr) { 
@@ -167,4 +248,13 @@ public class Room {
 	public void setShotPositions(ArrayList<GuiData> posData) {
 		this.shotPositions = posData;
 	}
+
+	public void setBoardManager(BoardManager mngr) {
+		this.boardManager = mngr;
+	}
+
+	public BoardManager getBoardManager() {
+		return this.boardManager;
+	}
+
 }

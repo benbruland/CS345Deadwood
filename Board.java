@@ -4,7 +4,12 @@ import java.util.Random;
 public class Board {
 
 	/* Private Attributes */
-
+	
+	// This BoardManager object is responsible for 
+    // controling the state of all game objects.
+    // The board manager is created in Deadwood.java
+    private static BoardManager boardManager = BoardManager.getInstance();
+	
 	//This is the card deck
 	private ArrayList<Scene> boardScenes;
 	
@@ -107,6 +112,46 @@ public class Board {
 		printCosts();
 	}
 	
+	public Room getPlayerRoom(int playerId) {
+		ArrayList<Room> rooms = this.boardRooms;
+		Player ply = this.players.get(playerId);
+		Room playerRoom = null;
+
+		if (castingOffice.roomContainsPlayer(ply)) {
+			playerRoom = castingOffice;
+		} else if(trailers.roomContainsPlayer(ply)) {
+			playerRoom = trailers;
+		}
+
+		if (playerRoom == null) {
+			for (int i = 0; i < rooms.size() && playerRoom == null; i++) {
+				if (rooms.get(i).roomContainsPlayer(ply)) {
+					playerRoom = rooms.get(i);
+				}	
+			}
+		}	
+
+		return playerRoom;
+	} 
+
+	public Room getRoomByName(String roomName) {
+		ArrayList<Room> rooms = this.getBoardRooms();
+		Room desiredRoom = null;
+		if (roomName.equals("office")) {
+			desiredRoom = castingOffice;
+		} else if(roomName.equals("trailer")) {
+			desiredRoom = trailers;
+		}
+		for (int i = 0; i < rooms.size() && desiredRoom == null; i++) {
+			if (rooms.get(i).getRoomName().equals(roomName)) {
+				desiredRoom = rooms.get(i);
+				return desiredRoom;
+			}
+		}
+		return desiredRoom;
+	}
+
+	
 	public ArrayList<Card> getDeck() {
 		return this.deck;
 	}
@@ -130,7 +175,7 @@ public class Board {
 	public ArrayList<Scene> getScenes(){
 		return this.boardScenes;
 	}
-
+	
 	public ArrayList<Player> getPlayers(){
 		return this.players;
 	}
@@ -180,4 +225,13 @@ public class Board {
 		this.deck = cards;
 	}
 
+	public void setBoardManager(BoardManager mngr) {
+		this.boardManager = mngr;
+	}
+
+	public BoardManager getBoardManager() {
+		return this.boardManager;
+	}
+
+	
 }

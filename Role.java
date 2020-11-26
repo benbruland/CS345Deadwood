@@ -8,6 +8,12 @@ public class Role {
     private String line;
     private GuiData rolePosition;
 
+
+    // This BoardManager object is responsible for 
+    // controling the state of all game objects.
+    // The board manager is created in Deadwood.java
+    private static BoardManager boardManager;
+
     public Role() {
 
     }
@@ -21,16 +27,12 @@ public class Role {
     }
 
     public void printRole() {
-        System.out.println("Role name = " + this.roleName);
-        System.out.println("\t * Role level = " + this.roleLevel);
-        System.out.println("\t * Role Line = " + this.line);
-        System.out.println("\t * Role ID = " + this.roleID);
-        String offCard = this.isOnCardRole ? "yes" : "no";
-        System.out.println("\t * Role is on card role: " + offCard);
-        System.out.println("\t * Role Available : " + this.roleAvailable);
+
+        String offCard = this.isOnCardRole ? "on card" : "off card";
+        System.out.printf("Role: %-30sRole Type: %-15sLevel: %-1d\n", this.roleName, offCard, this.roleLevel);
         
-        System.out.println("GUI Data: ");
-        this.rolePosition.printGuiData();
+        
+        
 
     }
 
@@ -77,5 +79,13 @@ public class Role {
     public void setRoleAvailable(boolean isAvailable) {
         this.roleAvailable = isAvailable;
     }
+    
+    public void setBoardManager(BoardManager mngr) {
+		this.boardManager = mngr;
+	}
+
+	public BoardManager getBoardManager() {
+		return this.boardManager;
+	}
 
 }

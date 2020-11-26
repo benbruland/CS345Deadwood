@@ -1,3 +1,5 @@
+//Authors: Benjamin Bruland, Lucas McIntosh
+
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -51,10 +53,9 @@ public class Deadwood {
     public static void main(String[] args) {
         ArrayList<String> playerNames = collectPlayerNames();
         int numberOfPlayers = playerNames.size();
-        BoardManager manager = new BoardManager(numberOfPlayers);
+        final BoardManager manager = BoardManager.getInstance(numberOfPlayers);
         ArrayList<Player> plyrs = manager.getBoard().getPlayers();
         Board b = manager.getBoard();
-        b.printBoard();
         /* First player decided randomly */
         Player currPlayer = manager.getActivePlayer();
         int playerIndex = -1;
@@ -71,28 +72,30 @@ public class Deadwood {
         boolean endOfGame = false;
         Scanner playerChoice = new Scanner(System.in);
         while(!endOfGame){
-            System.out.println("Player " + ((playerIndex % numberOfPlayers) + 1) + "'s turn");
-            manager.doPlayerTurn(playerChoice, currPlayer);
 
-            /* Checking for one scene left */
-            if(currPlayer.getPlayerRoom().getRoomScene().getScenesRemaining() == 1){
-                /* Returns winner if game over and null if not */
-                Player winner = manager.cycleGameDay();
-                if (winner != null){
-                    endOfGame = true;
+            manager.doPlayerTurn(currPlayer);
+            currPlayer = manager.getActivePlayer();
+
+            if (manager.getNumberOfScenesRemaining() == 1) {
+                ArrayList<Player> players = manager.getBoard().getPlayers();
+                for (Player ply: players) {
+                    ply.setPlayerRoom(manager.getBoard().getTrailers());
                 }
-                System.out.println("=====");
-                System.out.println("DAY " + manager.getCurrentDay());
-                System.out.println("=====");
+                endOfGame = manager.cycleGameDay();
+                System.out.println("Day ended, all players returned to trailers. New scenes dealt.");
+                System.out.println("Game Day: " + manager.getCurrentDay());
             }
 
-            /* Setting up next player's turn */
             if(!endOfGame){
                 manager.setActivePlayer(plyrs.get(++playerIndex % numberOfPlayers));
                 currPlayer = manager.getActivePlayer();
             }
         }
-        System.out.println("Final day completed, player " + (playerIndex + 1) + " is the winner!");
+        System.out.println("Game winner(s): ");
+        ArrayList<Player> winners = manager.scoreGame();
+        for (Player ply: winners) {
+            System.out.printf("Player: %s Score: %d", ply.getName(), manager.calculatePlayerScore(ply));
+        }
         playerChoice.close();
     }
 }
