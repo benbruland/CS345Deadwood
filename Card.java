@@ -30,6 +30,7 @@ public class Card {
     public void printCard() {
         System.out.println("\n==================================");
         System.out.println("Card Name = " + this.cardName);
+        System.out.println("\tImage Name = " + this.cardImage);
         System.out.println("\t* Card Budget = " + this.cardBudget);
         System.out.println("\t* Num roles = " + this.cardRoles.size());
         System.out.println("\t* Card Scene Number = " + this.cardScene);
@@ -85,13 +86,5 @@ public class Card {
     public void setImage(String img) {
         this.cardImage = img;
     }
-    
-    public void setBoardManager(BoardManager mngr) {
-		this.boardManager = mngr;
-	}
-
-	public BoardManager getBoardManager() {
-		return this.boardManager;
-	}
 
 }

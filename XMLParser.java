@@ -71,6 +71,7 @@ public class XMLParser {
         int roleIDCounter = 0;
         int budget = Integer.parseInt(getAttributeByName(card, "budget"));
         String cardName = getAttributeByName(card, "name");
+        String imgName = getAttributeByName(card, "img");
         boolean rolesOnCard = true;
         ArrayList<Role> cardRoles = new ArrayList<>();
         
@@ -97,6 +98,7 @@ public class XMLParser {
         }
         //public Card(int cardBudget, int cardSceneId, String card, Role[] roles)
         Card newCard = new Card(budget, sceneID, cardName, cardRoles);
+        newCard.setImage(imgName);
         return newCard;
     }
 
