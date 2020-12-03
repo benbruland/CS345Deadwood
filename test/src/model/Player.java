@@ -11,7 +11,9 @@ public class Player {
     private int playerDollars;
     private int rehearseBonus;
     private int playerID;
+    private int[] playerCoords = new int[2];
     private boolean playerInRole;
+    private String playerColor;
     private Role playerRole;
     private String playerName;
 
@@ -34,6 +36,7 @@ public class Player {
         this.rehearseBonus = 0;
         this.playerID = id;
         this.playerInRole = false;
+        this.playerColor = boardManager.colorID(id);
     }
 
     /*
@@ -221,12 +224,25 @@ public class Player {
         this.playerDollars = numDollars;
     }
 
+    public void setPlayerColor(String color){ this.playerColor = color;  }
+
+    public String getPlayerColor(){ return this.playerColor; }
+
     public int getPlayerDollars() {
         return this.playerDollars;
     }
 
     public int getPlayerCredits() {
         return this.playerCredits;
+    }
+
+    public int[] getPlayerCoordinates(){
+        return this.playerCoords;
+    }
+
+    public void setPlayerCoordinates(int[] coordinates){
+        this.playerCoords[0] = coordinates[0];
+        this.playerCoords[1] = coordinates[1];
     }
 
     public void setRank(int rank) {

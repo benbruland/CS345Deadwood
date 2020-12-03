@@ -42,6 +42,11 @@ public class GuiData {
         this.y = coordY;
     }
 
+    public void setXY(int x, int y){
+        this.x = x;
+        this.y = y;
+    }
+
     public void setHeight(int h) {
         this.height = h;
     }

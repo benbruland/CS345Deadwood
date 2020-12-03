@@ -46,6 +46,8 @@ public class Board {
 		this.creditUpgradeCosts = costs[1];
 		this.castingOffice = casting;
 		this.trailers = trailer;
+		this.castingOffice.setFlippedOver(true);
+		this.trailers.setFlippedOver(true);
 	}
 
 	// Gets a random integer, assumes min integer to be 0
@@ -162,6 +164,14 @@ public class Board {
 	public ArrayList<Scene> getBoardScenes(){
 		return this.boardScenes;
 	}
+
+	public ArrayList<Room> getAllRooms(){
+    	ArrayList<Room> allRooms = new ArrayList<Room>();
+    	allRooms.add(this.castingOffice);
+		allRooms.add(this.trailers);
+		allRooms.addAll(this.boardRooms);
+		return allRooms;
+    }
 
 	public ArrayList<Room> getBoardRooms(){
 		return this.boardRooms;

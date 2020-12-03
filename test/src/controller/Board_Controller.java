@@ -1,128 +1,59 @@
 package controller;
 
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import model.*;
-
-import java.io.FileInputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+
 public class Board_Controller {
 
-//    @FXML
-//    private Pane guiContainer;
-//
-//    @FXML
-//    private ImageView trainstation1;
-//
-//    @FXML
-//    private ImageView trainstation2;
-//
-//    @FXML
-//    private ImageView trainstation3;
-//
-//    @FXML
-//    private ImageView saloon1;
-//
-//    @FXML
-//    private ImageView saloon2;
-//
-//    @FXML
-//    private ImageView jail1;
-//
-//    @FXML
-//    private ImageView church1;
-//
-//    @FXML
-//    private ImageView church2;
-//
-//    @FXML
-//    private ImageView secrethideout1;
-//
-//    @FXML
-//    private ImageView secrethideout2;
-//
-//    @FXML
-//    private ImageView secrethideout3;
-//
-//    @FXML
-//    private ImageView mainstreet1;
-//
-//    @FXML
-//    private ImageView mainstreet2;
-//
-//    @FXML
-//    private ImageView mainstreet3;
-//
-//    @FXML
-//    private ImageView bank1;
-//
-//    @FXML
-//    private ImageView ranch1;
-//
-//    @FXML
-//    private ImageView ranch2;
-//
-//    @FXML
-//    private ImageView generalstore1;
-//
-//    @FXML
-//    private ImageView generalstore2;
-//
-//    @FXML
-//    private ImageView hotel1;
-//
-//    @FXML
-//    private ImageView hotel2;
-//
-//    @FXML
-//    private ImageView hotel3;
-//
-//    @FXML
-//    private ImageView saloonscene;
-//
-//    @FXML
-//    private ImageView mainstreetscene;
-//
-//    @FXML
-//    private ImageView secrethideoutscene;
-//
-//    @FXML
-//    private ImageView jailscene;
-//
-//    @FXML
-//    private ImageView bankscene;
-//
-//    @FXML
-//    private ImageView churchscene;
-//
-//    @FXML
-//    private ImageView hotelscene;
-//
-//    @FXML
-//    private ImageView ranchscene;
-//
-//    @FXML
-//    private ImageView trainstationscene;
-//
-//    @FXML
-//    private ImageView generalstorescene;
+    private VBox gameData;
+    private VBox playerData;
+    private GridPane trailer;
+    private GridPane castingoffice;
+    private GridPane trainstation;
+    private GridPane saloon;
+    private GridPane secrethideout;
+    private GridPane generalstore;
+    private GridPane jail;
+    private GridPane bank;
+    private GridPane mainstreet;
+    private GridPane hotel;
+    private GridPane ranch;
+    private GridPane church;
+    private Label currPlayer;
+
 
     public static BoardManager boardManager = null;
     public static Board_Controller boardController = null;
     public Map<String, ImageView> scenes = new HashMap<String, ImageView>();
     public Map<String, ImageView> shots = new HashMap<String, ImageView>();
+    public Map<String, Image> playerMarkers = new HashMap<String, Image>();
+    public Map<String, GridPane> roomPanes = new HashMap<String, GridPane>();
+    public Map<String, boolean[][]> roomPositions = new HashMap<String, boolean[][]>();
     public static Stage main;
     public static Parent root;
     public static Pane mainFrame;
@@ -147,15 +78,14 @@ public class Board_Controller {
         loader.setController(boardController);
         mainFrame = new Pane();
         mainFrame.getChildren().add(root);
-        initialize();
 
         ArrayList<Player> plyrs = b.getPlayers();
         /* First player decided randomly */
         Player currPlayer = boardManager.getActivePlayer();
-        int np = names.size();
+        setRoomPanes();
         int playerIndex = -1;
-        for(int i = 0; i < np; i++){
-            plyrs.get(i).setName(names.get(i));
+        for(int i = 0; i < nump; i++){
+            createPlayerMarker(plyrs.get(i), i);
             if (plyrs.get(i) == currPlayer){
                 playerIndex = i;
             }
@@ -163,17 +93,16 @@ public class Board_Controller {
         assert playerIndex != -1: "Unable to find randomly chosen first player.";
         ArrayList<Card> deck = boardManager.getDeck();
         boardManager.shuffleDeck(deck);
+        initialize();
 
         Stage gameStage = new Stage();
         gameStage.setResizable(false);
         gameStage.initStyle(StageStyle.DECORATED);
-        gameStage.initModality(Modality.APPLICATION_MODAL);
         gameStage.setX(0);
         gameStage.setY(0);
-        gameStage.setWidth(1400);
-        gameStage.setHeight(1000);
+        gameStage.setWidth(1500);
+        gameStage.setHeight(900);
         gameStage.initModality(Modality.WINDOW_MODAL);
-        //Parent newRoot = FXMLLoader.load(getClass().getResource("/resources/board.fxml"));
         javafx.scene.Scene game = new Scene(mainFrame, 1400, 1000);
         gameStage.setTitle("Deadwood");
         gameStage.setScene(game);
@@ -181,567 +110,448 @@ public class Board_Controller {
 
     }
 
+    public void generateMovePrompt(ActionEvent event){
+        ArrayList<String> neighboringRooms = boardManager.getActivePlayer().getPlayerRoom().getNeighborNames();
+        VBox vb = new VBox(12);
+        vb.setAlignment(Pos.CENTER);
+        vb.setPrefSize(234, 200);
+        Label prompt = new Label("Where would you like to move?");
+        prompt.setStyle("-fx-text-fill:WHITE;");
+        prompt.setPrefSize(260, 28);
+        prompt.setAlignment(Pos.TOP_CENTER);
+        prompt.setFont(Font.font("Sylfaen", 18));
+        vb.getChildren().add(prompt);
+
+        for(String s : neighboringRooms){
+            Button bt = new Button(s);
+            bt.setAlignment(Pos.CENTER);
+            bt.setPrefSize(200, 25);
+            bt.setFont(Font.font("Sylfaen", 18));
+            bt.setOnAction(new EventHandler<ActionEvent>() {
+                @Override
+                public void handle(ActionEvent event) {
+                    String desiredRoom = s;
+                    gameData.getChildren().remove(vb);
+                    boardManager.doMoveIo(desiredRoom);
+                }
+            });
+            vb.getChildren().add(bt);
+        }
+        gameData.getChildren().add(vb);
+    }
+
+    //TODO Implement takearole()
+
+    public void setPositionOpen(String roomName, int col, int row){
+        boolean[][] temp = roomPositions.get(roomName);
+        temp[col][row] = false;
+        roomPositions.put(roomName, temp);
+    }
+
+    public void setPositionOccupied(String roomName, int col, int row){
+        boolean[][] temp = roomPositions.get(roomName);
+        temp[col][row] = true;
+        roomPositions.put(roomName, temp);
+    }
+
+    public void setAllNotOccupied(boolean[][] roomPositions){
+        for(int i = 0; i < 4; i++) {
+            for (int j = 0; j < 2; j++){
+                roomPositions[i][j] = false;
+            }
+        }
+    }
+
     public void setShotCounters() throws Exception{
         ArrayList<Room> rooms = boardManager.getBoard().getRooms();
         for (Room room : rooms){
             ArrayList<GuiData> shotCoordinates = room.getShotPositions();
+            Collections.reverse(shotCoordinates);
             GuiData data;
             String roomName = room.getRoomName();
-            switch(roomName){
-                case "Saloon":
-                    data = shotCoordinates.get(0);
-                    ImageView saloon2 = new ImageView(new Image("/resources/imgs/shot.png", 47,47, false, false));
-                    saloon2.setX(data.getX());
-                    saloon2.setY(data.getY());
-                    shots.put("saloon2", saloon2);
-                    mainFrame.getChildren().add(saloon2);
-                    data = shotCoordinates.get(1);
-                    ImageView saloon1 = new ImageView(new Image("/resources/imgs/shot.png", 47,47, false, false));
-                    saloon1.setX(data.getX());
-                    saloon1.setY(data.getY());
-                    shots.put("saloon1", saloon1);
-                    mainFrame.getChildren().add(saloon1);
-                    break;
-                case "Hotel":
-                    data = shotCoordinates.get(0);
-                    ImageView hotel3 = new ImageView(new Image("/resources/imgs/shot.png", 47,47, false, false));
-                    hotel3.setX(data.getX());
-                    hotel3.setY(data.getY());
-                    shots.put("hotel3", hotel3);
-                    mainFrame.getChildren().add(hotel3);
-                    data = shotCoordinates.get(1);
-                    ImageView hotel2 = new ImageView(new Image("/resources/imgs/shot.png", 47,47, false, false));
-                    hotel2.setX(data.getX());
-                    hotel2.setY(data.getY());
-                    shots.put("hotel2", hotel2);
-                    mainFrame.getChildren().add(hotel2);
-                    data = shotCoordinates.get(2);
-                    ImageView hotel1 = new ImageView(new Image("/resources/imgs/shot.png", 47,47, false, false));
-                    hotel1.setX(data.getX());
-                    hotel1.setY(data.getY());
-                    shots.put("hotel2", hotel2);
-                    mainFrame.getChildren().add(hotel1);
-                    break;
-                case "Secret Hideout":
-                    data = shotCoordinates.get(0);
-                    ImageView secrethideout3 = new ImageView(new Image("/resources/imgs/shot.png", 47,47, false, false));
-                    secrethideout3.setX(data.getX());
-                    secrethideout3.setY(data.getY());
-                    shots.put("secrethideout3", secrethideout3);
-                    mainFrame.getChildren().add(secrethideout3);
-                    data = shotCoordinates.get(1);
-                    ImageView secrethideout2 = new ImageView(new Image("/resources/imgs/shot.png", 47,47, false, false));
-                    secrethideout2.setX(data.getX());
-                    secrethideout2.setY(data.getY());
-                    shots.put("secrethideout2", secrethideout2);
-                    mainFrame.getChildren().add(secrethideout2);
-                    data = shotCoordinates.get(2);
-                    ImageView secrethideout1 = new ImageView(new Image("/resources/imgs/shot.png", 47,47, false, false));
-                    secrethideout1.setX(data.getX());
-                    secrethideout1.setY(data.getY());
-                    shots.put("secrethideout1", secrethideout1);
-                    mainFrame.getChildren().add(secrethideout1);
-                    break;
-                case "Ranch":
-                    data = shotCoordinates.get(0);
-                    ImageView ranch2 = new ImageView(new Image("/resources/imgs/shot.png", 47,47, false, false));
-                    ranch2.setX(data.getX());
-                    ranch2.setY(data.getY());
-                    shots.put("ranch2", ranch2);
-                    mainFrame.getChildren().add(ranch2);
-                    data = shotCoordinates.get(1);
-                    ImageView ranch1 = new ImageView(new Image("/resources/imgs/shot.png", 47,47, false, false));
-                    ranch1.setX(data.getX());
-                    ranch1.setY(data.getY());
-                    shots.put("ranch1", ranch1);
-                    mainFrame.getChildren().add(ranch1);
-                    break;
-                case "Train Station":
-                    data = shotCoordinates.get(0);
-                    ImageView trainstation3 = new ImageView(new Image("/resources/imgs/shot.png", 47,47, false, false));
-                    trainstation3.setX(data.getX());
-                    trainstation3.setY(data.getY());
-                    shots.put("trainstation3", trainstation3);
-                    mainFrame.getChildren().add(trainstation3);
-                    data = shotCoordinates.get(1);
-                    ImageView trainstation2 = new ImageView(new Image("/resources/imgs/shot.png", 47,47, false, false));
-                    trainstation2.setX(data.getX());
-                    trainstation2.setY(data.getY());
-                    shots.put("trainstation2", trainstation2);
-                    mainFrame.getChildren().add(trainstation2);
-                    data = shotCoordinates.get(2);
-                    ImageView trainstation1 = new ImageView(new Image("/resources/imgs/shot.png", 47,47, false, false));
-                    trainstation1.setX(data.getX());
-                    trainstation1.setY(data.getY());
-                    shots.put("trainstation1", trainstation1);
-                    mainFrame.getChildren().add(trainstation1);
-                    break;
-                case "Church":
-                    data = shotCoordinates.get(0);
-                    ImageView church2 = new ImageView(new Image("/resources/imgs/shot.png", 47,47, false, false));
-                    church2.setX(data.getX());
-                    church2.setY(data.getY());
-                    shots.put("church2", church2);
-                    mainFrame.getChildren().add(church2);
-                    data = shotCoordinates.get(1);
-                    ImageView church1 = new ImageView(new Image("/resources/imgs/shot.png", 47,47, false, false));
-                    church1.setX(data.getX());
-                    church1.setY(data.getY());
-                    shots.put("church1", church1);
-                    mainFrame.getChildren().add(church1);
-                    break;
-                case "Bank":
-                    data = shotCoordinates.get(0);
-                    ImageView bank1 = new ImageView(new Image("/resources/imgs/shot.png", 47,47, false, false));
-                    bank1.setX(data.getX());
-                    bank1.setY(data.getY());
-                    shots.put("bank1", bank1);
-                    mainFrame.getChildren().add(bank1);
-                    break;
-                case "General Store":
-                    data = shotCoordinates.get(0);
-                    ImageView generalstore2 = new ImageView(new Image("/resources/imgs/shot.png", 47,47, false, false));
-                    generalstore2.setX(data.getX());
-                    generalstore2.setY(data.getY());
-                    shots.put("generalstore2", generalstore2);
-                    mainFrame.getChildren().add(generalstore2);
-                    data = shotCoordinates.get(1);
-                    ImageView generalstore1 = new ImageView(new Image("/resources/imgs/shot.png", 47,47, false, false));
-                    generalstore1.setX(data.getX());
-                    generalstore1.setY(data.getY());
-                    shots.put("generalstore1", generalstore1);
-                    mainFrame.getChildren().add(generalstore1);
-                    break;
-                case "Jail":
-                    data = shotCoordinates.get(0);
-                    ImageView jail1 = new ImageView(new Image("/resources/imgs/shot.png", 47,47, false, false));
-                    jail1.setX(data.getX());
-                    jail1.setY(data.getY());
-                    shots.put("jail1", jail1);
-                    mainFrame.getChildren().add(jail1);
-                    break;
-                case "Main Street":
-                    data = shotCoordinates.get(0);
-                    ImageView mainstreet3 = new ImageView(new Image("/resources/imgs/shot.png", 47,47, false, false));
-                    mainstreet3.setX(data.getX());
-                    mainstreet3.setY(data.getY());
-                    shots.put("mainstreet3", mainstreet3);
-                    mainFrame.getChildren().add(mainstreet3);
-                    data = shotCoordinates.get(1);
-                    ImageView mainstreet2 = new ImageView(new Image("/resources/imgs/shot.png", 47,47, false, false));
-                    mainstreet2.setX(data.getX());
-                    mainstreet2.setY(data.getY());
-                    shots.put("mainstreet2", mainstreet2);
-                    mainFrame.getChildren().add(mainstreet2);
-                    data = shotCoordinates.get(2);
-                    ImageView mainstreet1 = new ImageView(new Image("/resources/imgs/shot.png", 47,47, false, false));
-                    mainstreet1.setX(data.getX());
-                    mainstreet1.setY(data.getY());
-                    shots.put("mainstreet1", mainstreet1);
-                    mainFrame.getChildren().add(mainstreet1);
-                    break;
-                default:
-                    System.out.println("Invalid room, nothing shots to set");
-                    break;
+
+            for(int i = 1; i <= shotCoordinates.size(); i++){
+                data = shotCoordinates.get(i-1);
+                ImageView shotImg = new ImageView(new Image("/resources/imgs/shot.png", data.getWidth(),data.getWidth(), false, false));
+                shotImg.setX(data.getX());
+                shotImg.setY(data.getY());
+                shots.put(sanitizeRoomName(roomName)+i, shotImg);
+                mainFrame.getChildren().add(shotImg);
             }
         }
         System.out.println("Shots set");
     }
 
+    public void removeShotCounter(String roomName, int shotNum){
+        ImageView img = shots.get(sanitizeRoomName(roomName)+shotNum);
+        if(img != null){
+            img.setImage(null);
+        }
+        System.out.println("Shots removed: #" + shotNum);
+    }
+
     public void setScenes(){
-        ArrayList<Room> roomList = boardManager.getBoard().getRooms();
+        ArrayList<Room> roomList = boardManager.getBoard().getBoardRooms();
         for(Room room : roomList) {
             GuiData sceneCoordinates = room.getGuiData();
-            String roomName = room.getRoomName();
+            String roomName = sanitizeRoomName(room.getRoomName()) + "scene";
+            ImageView sceneImg = new ImageView(new Image("/resources/imgs/CardBack.jpg", sceneCoordinates.getWidth(),sceneCoordinates.getHeight(), false, false));
+            sceneImg.setX(sceneCoordinates.getX());
+            sceneImg.setY(sceneCoordinates.getY());
+            scenes.put(roomName, sceneImg);
+            mainFrame.getChildren().add(sceneImg);
+        }
+    }
 
-            switch (roomName){
-                case "Saloon":
-                    ImageView saloonscene = new ImageView(new Image("/resources/imgs/CardBack.jpg", sceneCoordinates.getWidth(),sceneCoordinates.getHeight(), false, false));
-                    saloonscene.setX(sceneCoordinates.getX());
-                    saloonscene.setY(sceneCoordinates.getY());
-                    scenes.put("saloonscene", saloonscene);
-                    mainFrame.getChildren().add(saloonscene);
+    public void flipCardImage(String imgTitle, String roomName){
+        String sceneName = sanitizeRoomName(roomName)+"scene";
+        assert scenes.get(sceneName) != null: "Scene cannot be removed from map, is not in map";
+        GuiData data = boardManager.getBoard().getRoomByName(roomName).getGuiData();
+        ImageView img = new ImageView(new Image("/resources/imgs/"+imgTitle, data.getWidth(), data.getHeight() , false, true));
+        img.setX(data.getX());
+        img.setY(data.getY());
+        scenes.put(sceneName, img);
+        mainFrame.getChildren().add(img);
+    }
+
+    public void removeCardImage(String roomName){
+        String sceneName = sanitizeRoomName(roomName) + "scene";
+        ImageView img = scenes.get(sceneName);
+        if (img != null){
+            img.setImage(null);
+            scenes.put(sceneName, img);
+        }
+        else{
+            System.out.println("Scene image is null");
+        }
+    }
+
+    public void setRoomPanes(){
+        ArrayList<Room> rms = boardManager.getBoard().getAllRooms();
+        GridPane gp;
+        boolean[][] occupiedSpaces;
+        String roomName;
+        for(Room rm : rms){
+            roomName = sanitizeRoomName(rm.getRoomName());
+            occupiedSpaces = new boolean[4][2];
+            setAllNotOccupied(occupiedSpaces);
+            roomPositions.put(roomName, occupiedSpaces);
+            switch(roomName){
+                case "office":
+                    gp = new GridPane();
+                    gp.setLayoutX(25);
+                    gp.setLayoutY(465);
+                    gp.setPrefSize(90, 180);
+                    roomPanes.put(roomName, gp);
+                    mainFrame.getChildren().add(gp);
                     break;
-                case "Train Station":
-                    ImageView trainstationscene = new ImageView(new Image("/resources/imgs/CardBack.jpg", sceneCoordinates.getWidth(),sceneCoordinates.getHeight(), false, false));
-                    trainstationscene.setX(sceneCoordinates.getX());
-                    trainstationscene.setY(sceneCoordinates.getY());
-                    scenes.put("trainstationscene", trainstationscene);
-                    mainFrame.getChildren().add(trainstationscene);
+                case "trailer":
+                    gp = new GridPane();
+                    gp.setLayoutX(1000);
+                    gp.setLayoutY(280);
+                    gp.setPrefSize(90, 180);
+                    roomPanes.put(roomName, gp);
+                    mainFrame.getChildren().add(gp);
                     break;
-                case "Ranch":
-                    ImageView ranchscene = new ImageView(new Image("/resources/imgs/CardBack.jpg", sceneCoordinates.getWidth(),sceneCoordinates.getHeight(), false, false));
-                    ranchscene.setX(sceneCoordinates.getX());
-                    ranchscene.setY(sceneCoordinates.getY());
-                    scenes.put("ranchscene", ranchscene);
-                    mainFrame.getChildren().add(ranchscene);
+                case "saloon":
+                    gp = new GridPane();
+                    gp.setLayoutX(725);
+                    gp.setLayoutY(180);
+                    gp.setPrefSize(90, 180);
+                    roomPanes.put(roomName, gp);
+                    mainFrame.getChildren().add(gp);
                     break;
-                case "Bank":
-                    ImageView bankscene = new ImageView(new Image("/resources/imgs/CardBack.jpg", sceneCoordinates.getWidth(),sceneCoordinates.getHeight(), false, false));
-                    bankscene.setX(sceneCoordinates.getX());
-                    bankscene.setY(sceneCoordinates.getY());
-                    scenes.put("bankscene", bankscene);
-                    mainFrame.getChildren().add(bankscene);
+                case "bank":
+                    gp = new GridPane();
+                    gp.setLayoutX(725);
+                    gp.setLayoutY(450);
+                    gp.setPrefSize(90, 180);
+                    roomPanes.put(roomName, gp);
+                    mainFrame.getChildren().add(gp);
                     break;
-                case "Church":
-                    ImageView churchscene = new ImageView(new Image("/resources/imgs/CardBack.jpg", sceneCoordinates.getWidth(),sceneCoordinates.getHeight(), false, false));
-                    churchscene.setX(sceneCoordinates.getX());
-                    churchscene.setY(sceneCoordinates.getY());
-                    scenes.put("churchscene", churchscene);
-                    mainFrame.getChildren().add(churchscene);
+                case "trainstation":
+                    gp = new GridPane();
+                    gp.setLayoutX(50);
+                    gp.setLayoutY(50);
+                    gp.setPrefSize(90, 180);
+                    roomPanes.put(roomName, gp);
+                    mainFrame.getChildren().add(gp);
                     break;
-                case "Secret Hideout":
-                    ImageView secrethideoutscene = new ImageView(new Image("/resources/imgs/CardBack.jpg", sceneCoordinates.getWidth(),sceneCoordinates.getHeight(), false, false));
-                    secrethideoutscene.setX(sceneCoordinates.getX());
-                    secrethideoutscene.setY(sceneCoordinates.getY());
-                    scenes.put("secrethideoutscene", secrethideoutscene);
-                    mainFrame.getChildren().add(secrethideoutscene);
+                case "jail":
+                    gp = new GridPane();
+                    gp.setLayoutX(250);
+                    gp.setLayoutY(150);
+                    gp.setPrefSize(90, 180);
+                    roomPanes.put(roomName, gp);
+                    mainFrame.getChildren().add(gp);
                     break;
-                case "Main Street":
-                    ImageView mainstreetscene = new ImageView(new Image("/resources/imgs/CardBack.jpg", sceneCoordinates.getWidth(),sceneCoordinates.getHeight(), false, false));
-                    mainstreetscene.setX(sceneCoordinates.getX());
-                    mainstreetscene.setY(sceneCoordinates.getY());
-                    scenes.put("mainstreetscene", mainstreetscene);
-                    mainFrame.getChildren().add(mainstreetscene);
+                case "hotel":
+                    gp = new GridPane();
+                    gp.setLayoutX(975);
+                    gp.setLayoutY(730);
+                    gp.setPrefSize(90, 180);
+                    roomPanes.put(roomName, gp);
+                    mainFrame.getChildren().add(gp);
                     break;
-                case "General Store":
-                    ImageView generalstorescene = new ImageView(new Image("/resources/imgs/CardBack.jpg", sceneCoordinates.getWidth(),sceneCoordinates.getHeight(), false, false));
-                    generalstorescene.setX(sceneCoordinates.getX());
-                    generalstorescene.setY(sceneCoordinates.getY());
-                    scenes.put("generalstorescene", generalstorescene);
-                    mainFrame.getChildren().add(generalstorescene);
+                case "ranch":
+                    gp = new GridPane();
+                    gp.setLayoutX(225);
+                    gp.setLayoutY(600);
+                    gp.setPrefSize(90, 180);
+                    roomPanes.put(roomName, gp);
+                    mainFrame.getChildren().add(gp);
                     break;
-                case "Hotel":
-                    ImageView hotelscene = new ImageView(new Image("/resources/imgs/CardBack.jpg", sceneCoordinates.getWidth(),sceneCoordinates.getHeight(), false, false));
-                    hotelscene.setX(sceneCoordinates.getX());
-                    hotelscene.setY(sceneCoordinates.getY());
-                    scenes.put("hotelscene", hotelscene);
-                    mainFrame.getChildren().add(hotelscene);
+                case "church":
+                    gp = new GridPane();
+                    gp.setLayoutX(1050);
+                    gp.setLayoutY(260);
+                    gp.setPrefSize(90, 180);
+                    roomPanes.put(roomName, gp);
+                    mainFrame.getChildren().add(gp);
                     break;
-                case "Jail":
-                    ImageView jailscene = new ImageView(new Image("/resources/imgs/CardBack.jpg", sceneCoordinates.getWidth(),sceneCoordinates.getHeight() , false, false));
-                    jailscene.setX(sceneCoordinates.getX());
-                    jailscene.setY(sceneCoordinates.getY());
-                    scenes.put("jailscene", jailscene);
-                    mainFrame.getChildren().add(jailscene);
+                case "secrethideout":
+                    gp = new GridPane();
+                    gp.setLayoutX(245);
+                    gp.setLayoutY(810);
+                    gp.setPrefSize(90, 180);
+                    roomPanes.put(roomName, gp);
+                    mainFrame.getChildren().add(gp);
+                    break;
+                case "generalstore":
+                    gp = new GridPane();
+                    gp.setLayoutX(375);
+                    gp.setLayoutY(235);
+                    gp.setPrefSize(90, 180);
+                    roomPanes.put(roomName, gp);
+                    mainFrame.getChildren().add(gp);
+                    break;
+                case "mainstreet":
+                    gp = new GridPane();
+                    gp.setLayoutX(775);
+                    gp.setLayoutY(80);
+                    gp.setPrefSize(90, 180);
+                    roomPanes.put(roomName, gp);
+                    mainFrame.getChildren().add(gp);
                     break;
                 default:
-                    System.out.println("Invalid room name: " + roomName);
+                    System.out.println("Invalid roomName: " + roomName);
                     break;
             }
         }
     }
 
-    /* Singleton implementation */
-//    private static final Board_Controller bc = new Board_Controller();
+    public void setSidePanel(){
+        gameData = new VBox(10);
+        gameData.setLayoutX(1198);
+        gameData.setPrefSize(302, 450);
+        gameData.setStyle("-fx-background-color: lightgreen");
+        gameData.setStyle("-fx-border-color: black");
+        currPlayer = new Label("");
+        currPlayer.setAlignment(Pos.TOP_CENTER);
+        currPlayer.setFont(Font.font ("Sylfaen", 18));
+        gameData.getChildren().add(currPlayer);
+
+        playerData = new VBox();
+        playerData.setAlignment(Pos.BOTTOM_CENTER);
+        playerData.setPrefSize(300, 450);
+        playerData.setLayoutX(1198);
+        playerData.setLayoutY(450);
+        playerData.setStyle("-fx-background-color: lightcoral");
+        playerData.setStyle("-fx-border-color: black");
+
+        HBox topRow = new HBox();
+        Button moveBut = new Button("Move");
+        moveBut.setFont(Font.font("Sylfaen", 18));
+        moveBut.setPrefSize(100, 100);
+        moveBut.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                moveBut.setDisable(true);
+                generateMovePrompt(event);
+                moveBut.setDisable(false);
+            }
+        });
+
+        Button takeRoleBut = new Button("Take a role");
+        takeRoleBut.setFont(Font.font("Sylfaen", 16));
+        takeRoleBut.setPrefSize(100, 100);
+//        takeRoleBut.setOnAction(new EventHandler<ActionEvent>() {
+//            @Override
+//            public void handle(ActionEvent event) {
 //
-//    private Board_Controller(){};
+//            }
+//        });
+
+        Button upgradeBut = new Button("Upgrade");
+        upgradeBut.setFont(Font.font("Sylfaen", 18));
+        upgradeBut.setPrefSize(100, 100);
+//        upgradeBut.setOnAction(new EventHandler<ActionEvent>() {
+//            @Override
+//            public void handle(ActionEvent event) {
 //
-//    public Board_Controller getBCInstance(){
-//        return bc;
-//    }
+//            }
+//        });
+        topRow.getChildren().addAll(moveBut, takeRoleBut, upgradeBut);
 
-    /* TODO */
+        HBox botRow = new HBox();
 
-    public void removeShotCounter(String roomName, int shotNum){
-        ImageView img;
-        switch(roomName) {
-            case "Saloon":
+        Button actBut = new Button("Act");
+        actBut.setFont(Font.font("Sylfaen", 28));
+        actBut.setPrefSize(150, 100);
+//        actBut.setOnAction(new EventHandler<ActionEvent>() {
+//            @Override
+//            public void handle(ActionEvent event) {
+//                generateMovePrompt(event);
+//            }
+//        });
 
-                if ((img = shots.get("saloon2")) != null){
-                    img.setImage(null);
-                }
-                break;
-            case "Hotel":
-                if ((img = shots.get("hotel3")) != null){
-                    img.setImage(null);
-                }
-                else if ((img = shots.get("hotel2")) != null) {
-                    img.setImage(null);
-                }
-                else if ((img = shots.get("hotel1")) != null){
-                    img.setImage(null);
-                }
-                else{
-                    System.out.println("All shots removed for this scene.");
-                }
-                break;
-            case "Secret Hideout":
-                if ((img = shots.get("secrethideout3")) != null){
-                    img.setImage(null);
-                }
-                else if ((img = shots.get("secrethideout2")) != null) {
-                    img.setImage(null);
-                }
-                else if ((img = shots.get("secrethideout1")) != null){
-                    img.setImage(null);
-                }
-                else{
-                    System.out.println("All shots removed for this scene.");
-                }
-                break;
-            case "Ranch":
-                if ((img = shots.get("ranch2")) != null){
-                    img.setImage(null);
-                }
-                break;
-            case "Train Station":
-                if ((img = shots.get("trainstation3")) != null){
-                    img.setImage(null);
-                }
-                else if ((img = shots.get("trainstation2")) != null) {
-                    img.setImage(null);
-                }
-                else if ((img = shots.get("trainstation1")) != null){
-                    img.setImage(null);
-                }
-                else{
-                    System.out.println("All shots removed for this scene.");
-                }
-                break;
-            case "Church":
-                if ((img = shots.get("church2")) != null){
-                    img.setImage(null);
-                }
-                break;
-            case "Bank":
-                if ((img = shots.get("bank1")) != null){
-                    img.setImage(null);
-                }
-                break;
-            case "General Store":
-                if ((img = shots.get("generalstore3")) != null){
-                    img.setImage(null);
-                }
-                else if ((img = shots.get("generalstore2")) != null) {
-                    img.setImage(null);
-                }
-                else if ((img = shots.get("generalstore1")) != null){
-                    img.setImage(null);
-                }
-                else{
-                    System.out.println("All shots removed for this scene.");
-                }
-                break;
-            case "Jail":
-                if ((img = shots.get("jail1")) != null){
-                    img.setImage(null);
-                }
-                else{
-                    System.out.println("All shots removed for this scene.");
-                }
-                break;
+        Button rehearseBut = new Button("Rehearse");
+        rehearseBut.setFont(Font.font("Sylfaen", 28));
+        rehearseBut.setPrefSize(150, 100);
+//        rehearseBut.setOnAction(new EventHandler<ActionEvent>() {
+//            @Override
+//            public void handle(ActionEvent event) {
+//
+//            }
+//        });
+        botRow.getChildren().addAll(actBut, rehearseBut);
+        gameData.getChildren().addAll(topRow, botRow);
+        mainFrame.getChildren().addAll(gameData, playerData);
+    }
 
-            case "Main Street":
-                if ((img = shots.get("mainstreet3")) != null){
-                    img.setImage(null);
+    //Adding dummy comment
+
+    public void moveToRoom(Player plyr, String roomName){
+        try{
+            Image img;
+            GridPane gp;
+            String sanRoomName = sanitizeRoomName(roomName);
+            if ((img = playerMarkers.get(plyr.getName())) != null){
+                if ((gp = roomPanes.get(sanRoomName)) != null){
+                    int[] coordinates = getOpenPositionInRoom(sanRoomName);
+                    setPositionOccupied(sanRoomName, coordinates[0], coordinates[1]);
+                    gp.add(new ImageView(img), coordinates[0], coordinates[1]);
+                    plyr.setPlayerCoordinates(coordinates);
                 }
-                else if ((img = shots.get("mainstreet2")) != null) {
-                    img.setImage(null);
+            }
+        } catch(Exception e){
+            System.out.println("Error in moveToRoom method");
+            e.printStackTrace();
+        }
+    }
+
+    public int[] getOpenPositionInRoom(String roomName){
+        int[] coords = {-1, -1};
+        boolean[][] roomPosition = roomPositions.get(roomName);
+        for(int i = 0; i < 4; i ++){
+            for(int j = 0; j < 2; j++){
+                if(roomPosition[i][j] == false){
+                    coords[0] = i;
+                    coords[1] = j;
+                    System.out.println("open space at position: (" + j + ", " + i + ")");
+                    return coords;
                 }
-                else if ((img = shots.get("mainstreet1")) != null){
-                    img.setImage(null);
-                }
-                else{
-                    System.out.println("All shots removed for this scene.");
-                }
+            }
+        }
+        return coords;
+    }
+
+    public void removeFromRoom(Player ply){
+        String roomName = sanitizeRoomName(ply.getPlayerRoom().getRoomName());
+        GridPane roomPane = roomPanes.get(roomName);
+        int[] playerCoords = ply.getPlayerCoordinates();
+        System.out.println("player coordinates: " + playerCoords.toString());
+        ObservableList<Node> dicePane = roomPane.getChildren();
+        for(Node n : dicePane){
+            if((roomPane.getColumnIndex(n) == playerCoords[0] && roomPane.getRowIndex(n) == playerCoords[1])){
+                roomPane.getChildren().remove(n);
+                setPositionOpen(roomName, playerCoords[0], playerCoords[1]);
+                roomPanes.put(roomName, roomPane);
+                break;
+            }
+        }
+    }
+
+    public void createPlayerMarker(Player plyr, int num){
+        String color = plyr.getPlayerColor();
+        Image playerMarker;
+        int row = num / 2;
+        int col = num % 2;
+        int coords[] = {row, col};
+
+        switch (color){
+            case "white":
+                playerMarker = new Image("/resources/imgs/w"+plyr.getPlayerRank()+".png", 44, 44 , false, true);
+                playerMarkers.put(plyr.getName(), playerMarker);
+                moveToRoom(plyr, "trailer");
+                break;
+            case "green":
+                playerMarker = new Image("/resources/imgs/g"+plyr.getPlayerRank()+".png", 44, 44 , false, true);
+                playerMarkers.put(plyr.getName(), playerMarker);
+                moveToRoom(plyr, "trailer");
+                break;
+            case "violet":
+                playerMarker = new Image("/resources/imgs/v"+plyr.getPlayerRank()+".png", 44, 44 , false, true);
+                playerMarkers.put(plyr.getName(), playerMarker);
+                moveToRoom(plyr, "trailer");
+                break;
+            case "yellow":
+                playerMarker = new Image("/resources/imgs/y"+plyr.getPlayerRank()+".png", 44, 44 , false, true);
+                playerMarkers.put(plyr.getName(), playerMarker);
+                moveToRoom(plyr, "trailer");
+                break;
+            case "orange":
+                playerMarker = new Image("/resources/imgs/o"+plyr.getPlayerRank()+".png", 44, 44 , false, true);
+                playerMarkers.put(plyr.getName(), playerMarker);
+                moveToRoom(plyr, "trailer");
+                break;
+            case "blue":
+                playerMarker = new Image("/resources/imgs/b"+plyr.getPlayerRank()+".png", 44, 44 , false, true);
+                playerMarkers.put(plyr.getName(), playerMarker);
+                moveToRoom(plyr, "trailer");
+                break;
+            case "pink":
+                playerMarker = new Image("/resources/imgs/p"+plyr.getPlayerRank()+".png", 44, 44 , false, true);
+                playerMarkers.put(plyr.getName(), playerMarker);
+                moveToRoom(plyr, "trailer");
+                break;
+            case "red":
+                playerMarker = new Image("/resources/imgs/r"+plyr.getPlayerRank()+".png", 44, 44 , false, true);
+                playerMarkers.put(plyr.getName(), playerMarker);
+                moveToRoom(plyr, "trailer");
+                break;
+            case "cyan":
+                playerMarker = new Image("/resources/imgs/c"+plyr.getPlayerRank()+".png", 44, 44 , false, true);
+                playerMarkers.put(plyr.getName(), playerMarker);
+                moveToRoom(plyr, "trailer");
                 break;
             default:
-                System.out.println("Invalid room name: " + roomName);
+                System.out.println("Invalid color: " + color);
                 break;
         }
     }
 
-    public void flipCardImage(String imgTitle, String roomName){
-        ImageView img;
-        GuiData data = boardManager.getBoard().getRoomByName(roomName).getGuiData();
-        switch(roomName){
-            case "Saloon":
-                assert scenes.remove("saloonscene") != null: "Scene cannot be removed from map, is not in map";
-                img = new ImageView(new Image("/resources/imgs/"+imgTitle, data.getWidth(), data.getHeight() , false, true));
-                img.setX(data.getX());
-                img.setY(data.getY());
-                scenes.put("saloonscene", img);
-                mainFrame.getChildren().add(img);
-                break;
-            case "Hotel":
-                assert scenes.remove("hotelscene") != null: "Scene cannot be removed from map, is not in map";
-                img = new ImageView(new Image("/resources/imgs/"+imgTitle, data.getWidth(), data.getHeight(), false, true));
-                img.setX(data.getX());
-                img.setY(data.getY());
-                scenes.put("hotelscene", img);
-                mainFrame.getChildren().add(img);
-                break;
-            case "Secret Hideout":
-                assert scenes.remove("secrethideoutscene") != null: "Scene cannot be removed from map, is not in map";
-                img = new ImageView(new Image("/resources/imgs/"+imgTitle, data.getWidth(), data.getHeight() , false, true));
-                scenes.put("secrethideoutscene", img);
-                mainFrame.getChildren().add(img);
-                break;
-            case "Ranch":
-                assert scenes.remove("ranchscene") != null: "Scene cannot be removed from map, is not in map";
-                img = new ImageView(new Image("/resources/imgs/"+imgTitle, data.getWidth(), data.getHeight() , false, true));
-                img.setX(data.getX());
-                img.setY(data.getY());
-                scenes.put("ranchscene", img);
-                mainFrame.getChildren().add(img);
-                break;
-            case "Train Station":
-                assert scenes.remove("trainstationscene") != null: "Scene cannot be removed from map, is not in map";
-                img = new ImageView(new Image("/resources/imgs/"+imgTitle, data.getWidth(), data.getHeight() , false, true));
-                img.setX(data.getX());
-                img.setY(data.getY());
-                scenes.put("trainstationscene", img);
-                mainFrame.getChildren().add(img);
-                break;
-            case "Church":
-                assert scenes.remove("churchscene") != null: "Scene cannot be removed from map, is not in map";
-                img = new ImageView(new Image("/resources/imgs/"+imgTitle, data.getWidth(), data.getHeight() , false, true));
-                img.setX(data.getX());
-                img.setY(data.getY());
-                scenes.put("churchscene", img);
-                mainFrame.getChildren().add(img);
-                break;
-            case "Bank":
-                assert scenes.remove("bankscene") != null: "Scene cannot be removed from map, is not in map";
-                img = new ImageView(new Image("/resources/imgs/"+imgTitle, data.getWidth(), data.getHeight() , false, true));
-                img.setX(data.getX());
-                img.setY(data.getY());
-                scenes.put("bankscene", img);
-                mainFrame.getChildren().add(img);
-                break;
-            case "General Store":
-                assert scenes.remove("generalstorescene") != null: "Scene cannot be removed from map, is not in map";
-                img = new ImageView(new Image("/resources/imgs/"+imgTitle, data.getWidth(), data.getHeight(), false, true));
-                img.setX(data.getX());
-                img.setY(data.getY());
-                scenes.put("generalstorescene", img);
-                mainFrame.getChildren().add(img);
-                break;
-            case "Jail":
-                assert scenes.remove("jailscene") != null: "Scene cannot be removed from map, is not in map";
-                img = new ImageView(new Image("/resources/imgs/"+imgTitle, data.getWidth(), data.getHeight() , false, true));
-                img.setX(data.getX());
-                img.setY(data.getY());
-                scenes.put("jailscene", img);
-                mainFrame.getChildren().add(img);
-                break;
-            case "Main Street":
-                assert scenes.remove("mainstreetscene") != null: "Scene cannot be removed from map, is not in map";
-                img = new ImageView(new Image("/resources/imgs/"+imgTitle, data.getWidth(), data.getHeight(), false, true));
-                img.setX(data.getX());
-                img.setY(data.getY());
-                scenes.put("mainstreetscene", img);
-                mainFrame.getChildren().add(img);
-                break;
-            default:
-                System.out.println("Invalid room, nothing to flip over");
-                break;
-        }
+    public String sanitizeRoomName(String roomName){
+        return roomName.toLowerCase().replace(" ", "");
     }
 
-    public void removeCardImage(String roomName){
-        ImageView img;
-        switch(roomName){
-            case "Train Station":
-                img = scenes.get("trainstationscene");
-                img.setImage(null);
-                assert scenes.remove("trainstationscene") != null: "Scene cannot be removed from map, is not in map";
-                scenes.put("trainstationscene", img);
-                mainFrame.getChildren().add(img);
-                break;
-            case "Secret Hideout":
-                img = scenes.get("secrethideoutscene");
-                img.setImage(null);
-                assert scenes.remove("secrethideoutscene") != null: "Scene cannot be removed from map, is not in map";
-                scenes.put("secrethideoutscene", img);
-                mainFrame.getChildren().add(img);
-                break;
-            case "General Store":
-                img = scenes.get("generalstorescene");
-                img.setImage(null);
-                assert scenes.remove("generalstorescene") != null: "Scene cannot be removed from map, is not in map";
-                scenes.put("generalstorescene", img);
-                mainFrame.getChildren().add(img);
-                break;
-            case "Main Street":
-                img = scenes.get("mainstreetscene");
-                img.setImage(null);
-                assert scenes.remove("mainstreetscene") != null: "Scene cannot be removed from map, is not in map";
-                scenes.put("mainstreetscene", img);
-                mainFrame.getChildren().add(img);
-                break;
-            case "Hotel":
-                img = scenes.get("hotelscene");
-                img.setImage(null);
-                assert scenes.remove("hotelscene") != null: "Scene cannot be removed from map, is not in map";
-                scenes.put("hotelscene", img);
-                mainFrame.getChildren().add(img);
-                break;
-            case "Saloon":
-                img = scenes.get("saloonscene");
-                img.setImage(null);
-                assert scenes.remove("saloonscene") != null: "Scene cannot be removed from map, is not in map";
-                scenes.put("saloonscene", img);
-                mainFrame.getChildren().add(img);
-                break;
-            case "Church":
-                img = scenes.get("churchscene");
-                img.setImage(null);
-                assert scenes.remove("churchscene") != null: "Scene cannot be removed from map, is not in map";
-                scenes.put("churchscene", img);
-                mainFrame.getChildren().add(img);
-                break;
-            case "Ranch":
-                img = scenes.get("ranchscene");
-                img.setImage(null);
-                assert scenes.remove("ranchscene") != null: "Scene cannot be removed from map, is not in map";
-                scenes.put("ranchscene", img);
-                mainFrame.getChildren().add(img);
-                break;
-            case "Jail":
-//                img = scenes.get("jailscene");
-//                img.setImage(null);
-//                assert scenes.remove("jailscene") != null: "Scene cannot be removed from map, is not in map";
-//                scenes.put("jailscene", img);
-//                mainFrame.getChildren().add(img);
-                if ((img = scenes.get("jailscene")) != null){
-                    img.setImage(null);
-                    scenes.remove("jailscene");
-                }
-                else{
-                    System.out.println("Scene image is null");
-                }
-                break;
-            case "Bank":
-                img = scenes.get("bankscene");
-                img.setImage(null);
-                assert scenes.remove("bankscene") != null: "Scene cannot be removed from map, is not in map";
-                scenes.put("bankscene", img);
-                mainFrame.getChildren().add(img);
-                break;
-            default:
-                System.out.println("Invalid roomName: " + roomName);
-                break;
-        }
-    }
-
-    @FXML
     public void initialize() throws Exception{
-        System.out.println("In initialize method Board_Controller");
+        System.out.println("In initialize method in Board_Controller");
         Board_Controller boardController = Board_Controller.getInstance();
         System.out.println("after Board_Controller.getInstance");
         boardController.setShotCounters();
         System.out.println("after setShotCounters");
         boardController.setScenes();
         System.out.println("after setScenes");
-        boardController.removeShotCounter("Saloon", 2);
-        System.out.println("after shot counter removed");
-        boardController.flipCardImage("01.png", "Saloon");
-        System.out.println("after card image flipped");
-        boardController.removeShotCounter("Jail", 1);
-        boardController.removeCardImage("Jail");
-        System.out.println("after shot AND card image removal");
+        boardController.setSidePanel();
+        System.out.println("after setSidePanel");
+//        boardController.removeShotCounter("Saloon", 2);
+//        System.out.println("after shot counter removed");
+//        boardController.flipCardImage("01.png", "Saloon");
+//        System.out.println("after card image flipped");
+//        boardController.removeShotCounter("Jail", 1);
+//        boardController.removeCardImage("Jail");
+//        System.out.println("after shot AND card image removal");
 
     }
 

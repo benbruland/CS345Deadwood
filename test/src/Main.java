@@ -38,7 +38,8 @@ public class Main extends Application {
 
     private ArrayList<TextField> nameList = new ArrayList<TextField>();
 
-    public Stage mainStage;
+    private Stage mainStage;
+
 
     @Override
     public void init() throws Exception {
@@ -58,8 +59,7 @@ public class Main extends Application {
         bt.setLayoutX(208);
         bt.setLayoutY(304);
         bt.setPrefSize(185.0, 54.0);
-        bt.setFont(Font.font("Sylfaen"));
-        bt.setStyle("-fx-font-size: 27");
+        bt.setFont(Font.font("Sylfaen", 27));
         bt.setStyle("-fx-background-color: white");
         bt.setStyle("-fx-border-color: black");
         bt.setOnAction(new EventHandler<ActionEvent>() {
@@ -94,6 +94,7 @@ public class Main extends Application {
         Scene numpPrompt = new Scene(pn, 470, 150);
         mainStage.setTitle("Number of Players");
         mainStage.setScene(numpPrompt);
+        mainStage.setResizable(false);
         mainStage.show();
     }
 
@@ -130,6 +131,7 @@ public class Main extends Application {
         Scene namePrompt = new Scene(main, 600, 400);
         prevWindow.setTitle("Deadwood Game Setup");
         prevWindow.setScene(namePrompt);
+        prevWindow.setResizable(false);
         prevWindow.show();
 
     }
@@ -193,6 +195,7 @@ public class Main extends Application {
 //                System.out.printf("Player: %s Score: %d", ply.getName(), manager.calculatePlayerScore(ply));
 //            }
 //            playerChoice.close();
+            System.out.println("Back in Main");
 
         } catch (Exception e){
             e.printStackTrace();

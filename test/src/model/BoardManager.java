@@ -3,6 +3,8 @@
 package model;
 
 import controller.Board_Controller;
+
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -17,13 +19,18 @@ public final class BoardManager{
     private int dayOfGame = 1;    // Current day of game
     private int numberOfDays; // Total number of days to play
     private int numberOfScenesRemaining; //number of scenes remaining in a particular day
+    private String colors[] = {"white", "red", "violet", "yellow", "pink", "cyan", "green", "blue", "orange"};
     
     //BoardManager is a singleton class. This is the instance var
     private static BoardManager instance;
 
+    private Board_Controller boardController = Board_Controller.getInstance();
+
     /* Non-Primitive Attributes */
     private Board gameBoard;
     private Player activePlayer;
+
+
 
 
     //TODO Implement Constructors
@@ -37,7 +44,7 @@ public final class BoardManager{
         assert numPlyrs >= 2 && numPlyrs <= 8 : "Invalid number of players: " + numPlyrs ;
         this.numPlayers = numPlyrs;
         this.numberOfDays = numPlyrs > 3 ? 4 : 3;
-        this.dayOfGame = 1; 
+        this.dayOfGame = 1;
         this.initBoard(numPlyrs, nameList);
         this.activePlayer = chooseFirstPlayer();
     }
@@ -90,6 +97,10 @@ public final class BoardManager{
 
     public ArrayList<Card> getDeck() {
         return this.getBoard().getDeck();
+    }
+
+    public String colorID(int num){
+        return this.colors[num];
     }
 
     // Sets up the board for the given number of players
@@ -326,7 +337,6 @@ public final class BoardManager{
         scene.setSceneRoom(room);
         room.setRoomScene(scene);
         scene.setShotsRemaining(room.getNumTakes());
-        room.printRoom();
     }
 
     
@@ -398,7 +408,7 @@ public final class BoardManager{
         boolean turnFinished = false;
         switch (choice) {
             case "move":
-                doMoveIo(choiceScanner, ply);
+                //doMoveIo(choiceScanner, ply);
                 break;
             case "upgrade":
                 doUpgradeIo(ply, choiceScanner);
@@ -515,19 +525,39 @@ public final class BoardManager{
         } // end max rank check
     } // End upgradeIo
 
-    public void doMoveIo(Scanner choiceScanner, Player ply) {
-        ArrayList<String> neighboringRooms = ply.getPlayerRoom().getNeighborNames();
-        System.out.println("Enter desired room as a number:");
-        printAvailableActions("",neighboringRooms);
-        String roomChoice = getActionChoice(neighboringRooms, choiceScanner);
+    //TODO Add isSpecialRoom() which returns boolean if room is trailer or office
+
+    public void doMoveIo(String roomChoice) {
+        System.out.println("in moveIO with: " + roomChoice);
+
+        Player ply = this.getActivePlayer();
+        String roomName = ply.getPlayerRoom().getRoomName();
+        boardController.removeFromRoom(ply);
+        boardController.moveToRoom(ply, roomChoice);
         ply.move(this.getBoard().getRoomByName(roomChoice));
+//        if(roomChoice.equals("office") || roomChoice.equals("trailer")){
+//
+//            boardController.removeFromActingRoom(ply);
+//            boardController.moveToSpecialRoom(ply, roomChoice, boardController.getOpenSpecialRoomPosition(roomChoice));
+//            ply.move(this.getBoard().getRoomByName(roomChoice));
+//        }
+//        else{
+//            if(roomName.equals("office") || roomName.equals("trailer")){
+//                boardController.removeFromSpecialRoom(ply);
+//            }
+//            else{
+//                boardController.removeFromActingRoom(ply);
+//            }
+//            boardController.moveToActingRoom(ply, roomChoice, boardController.getOpenActingRoomPosition(roomName));
+//            ply.move(this.getBoard().getRoomByName(roomChoice));
+//        }
 
         /* if scene card is face down */
+        Room plyRoom = ply.getPlayerRoom();
         if (!ply.getPlayerRoom().getFlippedOver()){
-            //bc.flipCardImage(ply.getPlayerRoom().getRoomScene().getImageTitle(), ply.getPlayerRoom().getRoomName());
-            ply.getPlayerRoom().setFlippedOver(true);
+            boardController.flipCardImage(plyRoom.getRoomScene().getImageTitle(), plyRoom.getRoomName());
+            plyRoom.setFlippedOver(true);
         }
-
     }
 
     //Prints a list of role objects.
@@ -702,6 +732,7 @@ public final class BoardManager{
 
         for (int i = 0; i < numScenes; i++) {
             Scene roomScene = randomScenes.get(i);
+            roomScene.setImageTitle(roomScene.getSceneCard().getImage());
             Room dealRoom = rooms.get(i);
             assert roomScene != null : "Do not assign null scenes to a room object";
             assignSceneToRoom(roomScene, dealRoom);
