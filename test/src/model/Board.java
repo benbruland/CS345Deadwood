@@ -218,6 +218,14 @@ public class Board {
 		return this.dollarUpgradeCosts[targetLevel - 2];
 	}
 
+	public int[] getCreditUpgradeCostList() {
+		return this.creditUpgradeCosts;
+	}
+
+	public int[] getDollarUpgradeCostList() {
+		return this.dollarUpgradeCosts;
+	}
+
 	public void setDollarUpgradeCosts(int[] upgrades) {
 		this.dollarUpgradeCosts = upgrades;
 	}

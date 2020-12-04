@@ -8,12 +8,12 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
@@ -126,6 +126,149 @@ public class Board_Controller {
         gameData.getChildren().add(vb);
     }
 
+    public void createUpgradeWindow(ActionEvent event){
+        Stage upgradeWindow = new Stage();
+        upgradeWindow.setResizable(false);
+        upgradeWindow.setTitle("Upgrade Rank");
+        upgradeWindow.initStyle(StageStyle.DECORATED);
+        upgradeWindow.initModality(Modality.APPLICATION_MODAL);
+        Pane root = new Pane();
+        ImageView bg = new ImageView(new Image("/resources/imgs/CardBack.jpg", 600, 400, false, false));
+        bg.setOpacity(0.75);
+        root.getChildren().add(bg);
+
+        HBox topBar = new HBox(100);
+        topBar.setPadding(new Insets(0, 65, 0 , 0));
+        topBar.setAlignment(Pos.TOP_RIGHT);
+        topBar.setPrefSize(600, 0);
+        Label creditLabel = new Label("Credits");
+        creditLabel.setAlignment(Pos.TOP_CENTER);
+        creditLabel.setFont(Font.font("Sylfaen", 28));
+        Label dollarLabel = new Label("Dollars");
+        dollarLabel.setAlignment(Pos.TOP_CENTER);
+        dollarLabel.setFont(Font.font("Sylfaen", 28));
+        topBar.getChildren().addAll(dollarLabel, creditLabel);
+        root.getChildren().add(topBar);
+
+        VBox rankBox = new VBox(15);
+        rankBox.setLayoutX(45);
+        rankBox.setLayoutY(50);
+        ToggleGroup rankGrp = new ToggleGroup();
+        rankBox.setAlignment(Pos.TOP_CENTER);
+        ArrayList<RadioButton> buttonList = createRankButtons(rankGrp, 6);
+        rankBox.getChildren().addAll(buttonList);
+        root.getChildren().addAll(rankBox);
+
+
+        int[] dollarCosts = boardManager.getBoard().getDollarUpgradeCostList();
+        int[] creditCosts = boardManager.getBoard().getCreditUpgradeCostList();
+
+        VBox dollarCostBox = new VBox(15);
+        dollarCostBox.setPadding(new Insets(25, 0, 0, 0));
+        dollarCostBox.setAlignment(Pos.TOP_CENTER);
+        dollarCostBox.setLayoutX(405);
+        dollarCostBox.setLayoutY(25);
+        dollarCostBox.setPrefSize(180, 100);
+        ArrayList<Label> labelDollarList = createLabelNodes(dollarCosts, 6);
+        dollarCostBox.getChildren().addAll(labelDollarList);
+        root.getChildren().add(dollarCostBox);
+
+
+        VBox creditCostBox = new VBox(15);
+        creditCostBox.setPadding(new Insets(25, 0, 0, 0));
+        creditCostBox.setAlignment(Pos.TOP_CENTER);
+        creditCostBox.setLayoutX(225);
+        creditCostBox.setLayoutY(25);
+        creditCostBox.setPrefSize(180, 100);
+        ArrayList<Label> labelCreditList = createLabelNodes(creditCosts, 6);
+        creditCostBox.getChildren().addAll(labelCreditList);
+        root.getChildren().addAll(creditCostBox);
+
+        ToggleGroup selectionGrp = new ToggleGroup();
+        RadioButton creditBut = new RadioButton("Credits");
+        creditBut.setFont(Font.font("Sylfaen", 20));
+        creditBut.setLayoutX(210);
+        creditBut.setLayoutY(335);
+        creditBut.setToggleGroup(selectionGrp);
+        RadioButton dollarBut = new RadioButton("Dollars");
+        dollarBut.setLayoutX(340);
+        dollarBut.setLayoutY(335);
+        dollarBut.setFont(Font.font("Sylfaen", 20));
+        dollarBut.setToggleGroup(selectionGrp);
+        Label payPrompt = new Label("Pay with                         or ");
+        payPrompt.setFont(Font.font("Sylfaen", 18));
+        payPrompt.setLayoutX(135);
+        payPrompt.setLayoutY(340);;
+
+
+        Button submitBut = new Button("Submit Upgrade");
+        submitBut.setFont(Font.font("Sylfaen", 12));
+        submitBut.setLayoutY(370);
+        submitBut.setPrefSize(600, 30);
+        submitBut.setOnAction(e -> { try{
+                                        processUpgrade(e,((RadioButton)rankGrp.getSelectedToggle()).getText(), ((RadioButton)selectionGrp.getSelectedToggle()).getText());
+                                    } catch(Exception excep){
+                                        showDialog("Invalid Upgrade", "Rank selection and payment type buttons must be selected.");}});
+        root.getChildren().addAll(payPrompt, dollarBut, creditBut, submitBut);
+        Scene upgradeScene = new Scene(root, 600, 400);
+        upgradeWindow.setScene(upgradeScene);
+        upgradeWindow.show();
+    }
+
+    private ArrayList<Label> createLabelNodes(int[] upgradeCost, int maxRank){
+        Player plyr = boardManager.getActivePlayer();
+        int playerRank = plyr.getPlayerRank();
+        ArrayList<Label> labelList = new ArrayList<Label>();
+        for(int i = playerRank + 1; i <= maxRank; i++){
+            Label label = new Label(Integer.toString(upgradeCost[i-2]));
+            label.setAlignment(Pos.CENTER);
+            label.setFont(Font.font("Sylfaen", 28));
+            labelList.add(label);
+        }
+        return labelList;
+    }
+
+    private ArrayList<RadioButton> createRankButtons(ToggleGroup grp, int maxRank){
+        Player plyr = boardManager.getActivePlayer();
+        int playerRank = plyr.getPlayerRank();
+        ArrayList<RadioButton> buttonList = new ArrayList<RadioButton>();
+        for(int i = playerRank + 1; i <= maxRank; i++){
+            RadioButton rankBut = new RadioButton("Rank " + i);
+            rankBut.setAlignment(Pos.CENTER);
+            rankBut.setFont(Font.font("Sylfaen", 28));
+            rankBut.setToggleGroup(grp);
+            buttonList.add(rankBut);
+        }
+        return buttonList;
+    }
+
+    private void processUpgrade(ActionEvent e, String rankString, String currencySelection){
+        int rankSelection = Integer.parseInt(rankString.replaceAll("[a-zA-Z\\s+]", ""));
+        Player plyr = boardManager.getActivePlayer();
+        Stage prevWindow = (Stage) ((Node) e.getSource()).getScene().getWindow();
+        int dollars = currencySelection == "Dollars" ? plyr.getPlayerDollars() : 0;
+        int credits = currencySelection == "Credits" ? plyr.getPlayerCredits() : 0;
+        boolean success = plyr.upgrade(rankSelection, dollars, credits);
+        if(success){
+            showDialog("Successful Upgrade", "Player rank upgraded to rank " + plyr.getPlayerRank());
+            // TODO Change player Dice based on new rank
+            prevWindow.close();
+        }
+        else{
+            showDialog("Error upgrading", "Player does not have sufficient currency to upgrade to rank " + rankSelection);
+            prevWindow.close();
+        }
+    }
+
+    private void showDialog(String title, String message) {
+        Dialog<String> dialog = new Dialog<String>();
+        dialog.setTitle(title);
+        ButtonType type = new ButtonType("Ok", ButtonBar.ButtonData.OK_DONE);
+        dialog.setContentText(message);
+        dialog.getDialogPane().getButtonTypes().add(type);
+        dialog.showAndWait();
+    }
+
     private void toggleButtons(ArrayList<Button> buttons, boolean buttonOn) {
         for (Button btn: buttons) {
             btn.setDisable(!buttonOn);
@@ -161,35 +304,34 @@ public class Board_Controller {
         return roleContainer;
     }
 
-    //TODO Implement takearole()
-    public void takeRole(ArrayList<Button> buttons, VBox gameData, ActionEvent event) {
-        Player activePly = boardManager.getActivePlayer();
-        Room plyRoom = activePly.getPlayerRoom();
-
-        if (!plyRoom.roomHasScene()) {
-            toggleButtons(buttons, true);
-            return;
-        }
-        ArrayList<Role> roles = boardManager.getAvailableRoles(plyRoom.getRoomScene());
-        ObservableList children = gameData.getChildren();
-        Font roleFont = Font.font("Sylfaen", 12);
-        VBox rolePrompt = makePrompt("Choose a Role:");
-        GridPane roleContainer = makeRoleBox(roles);
-        children.addAll(rolePrompt, roleContainer);
-
-        int roleCounter = 0;
-        for (Role plyRole: roles) {
-            Button roleButton = new Button(plyRole.getRoleName());
-            roleButton.setAlignment(Pos.CENTER);
-            int len = plyRole.getRoleName().length();
-            roleButton.setPrefSize(200, 10);
-            roleButton.setFont(roleFont);
-            roleContainer.add(roleButton, roleCounter % 2, roleCounter/2);
-            roleButton.setOnAction(e -> doTakeRoleIo(buttons, gameData, roleContainer, rolePrompt,plyRole));
-            roleCounter++;
-        }
-
-    }
+    //TODO Resolve !plyToom.roomHasScene() call
+//    public void takeRole(ArrayList<Button> buttons, VBox gameData, ActionEvent event) {
+//        Player activePly = boardManager.getActivePlayer();
+//        Room plyRoom = activePly.getPlayerRoom();
+//
+//        if (!plyRoom.roomHasScene()) {
+//            toggleButtons(buttons, true);
+//            return;
+//        }
+//        ArrayList<Role> roles = boardManager.getAvailableRoles(plyRoom.getRoomScene());
+//        ObservableList children = gameData.getChildren();
+//        Font roleFont = Font.font("Sylfaen", 12);
+//        VBox rolePrompt = makePrompt("Choose a Role:");
+//        GridPane roleContainer = makeRoleBox(roles);
+//        children.addAll(rolePrompt, roleContainer);
+//
+//        int roleCounter = 0;
+//        for (Role plyRole: roles) {
+//            Button roleButton = new Button(plyRole.getRoleName());
+//            roleButton.setAlignment(Pos.CENTER);
+//            int len = plyRole.getRoleName().length();
+//            roleButton.setPrefSize(200, 10);
+//            roleButton.setFont(roleFont);
+//            roleContainer.add(roleButton, roleCounter % 2, roleCounter/2);
+//            roleButton.setOnAction(e -> doTakeRoleIo(buttons, gameData, roleContainer, rolePrompt,plyRole));
+//            roleCounter++;
+//        }
+//    }
 
     public void setPositionOpen(String roomName, int col, int row){
         boolean[][] temp = roomPositions.get(roomName);
@@ -399,19 +541,20 @@ public class Board_Controller {
             @Override
             public void handle(ActionEvent event) {
                 toggleButtons(buttons, false);
-                takeRole(buttons, gameData, event);
+                //TODO Resolve takeRole call
+                //takeRole(buttons, gameData, event);
             }
         });
 
         Button upgradeBut = new Button("Upgrade");
         upgradeBut.setFont(Font.font("Sylfaen", 18));
         upgradeBut.setPrefSize(100, 100);
-//        upgradeBut.setOnAction(new EventHandler<ActionEvent>() {
-//            @Override
-//            public void handle(ActionEvent event) {
-//
-//            }
-//        });
+        upgradeBut.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                createUpgradeWindow(event);
+            }
+        });
         topRow.getChildren().addAll(moveBut, takeRoleBut, upgradeBut);
 
         HBox botRow = new HBox();
