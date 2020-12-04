@@ -1,5 +1,8 @@
 package controller;
 
+import javafx.beans.Observable;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -22,29 +25,13 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import model.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+
+import java.util.*;
 
 
 public class Board_Controller {
 
-    private VBox gameData;
-    private VBox playerData;
-    private GridPane trailer;
-    private GridPane castingoffice;
-    private GridPane trainstation;
-    private GridPane saloon;
-    private GridPane secrethideout;
-    private GridPane generalstore;
-    private GridPane jail;
-    private GridPane bank;
-    private GridPane mainstreet;
-    private GridPane hotel;
-    private GridPane ranch;
-    private GridPane church;
-    private Label currPlayer;
+
 
 
     public static BoardManager boardManager = null;
@@ -78,7 +65,6 @@ public class Board_Controller {
         loader.setController(boardController);
         mainFrame = new Pane();
         mainFrame.getChildren().add(root);
-
         ArrayList<Player> plyrs = b.getPlayers();
         /* First player decided randomly */
         Player currPlayer = boardManager.getActivePlayer();
@@ -110,7 +96,7 @@ public class Board_Controller {
 
     }
 
-    public void generateMovePrompt(ActionEvent event){
+    public void generateMovePrompt(ArrayList<Button> buttons, VBox gameData, ActionEvent event){
         ArrayList<String> neighboringRooms = boardManager.getActivePlayer().getPlayerRoom().getNeighborNames();
         VBox vb = new VBox(12);
         vb.setAlignment(Pos.CENTER);
@@ -127,20 +113,83 @@ public class Board_Controller {
             bt.setAlignment(Pos.CENTER);
             bt.setPrefSize(200, 25);
             bt.setFont(Font.font("Sylfaen", 18));
-            bt.setOnAction(new EventHandler<ActionEvent>() {
-                @Override
-                public void handle(ActionEvent event) {
+            bt.setOnAction(e -> {
+
                     String desiredRoom = s;
                     gameData.getChildren().remove(vb);
+                    toggleButtons(buttons, true);
                     boardManager.doMoveIo(desiredRoom);
-                }
+
             });
             vb.getChildren().add(bt);
         }
         gameData.getChildren().add(vb);
     }
 
+    private void toggleButtons(ArrayList<Button> buttons, boolean buttonOn) {
+        for (Button btn: buttons) {
+            btn.setDisable(!buttonOn);
+        }
+    }
+
+    private void doTakeRoleIo(ArrayList<Button> buttonsToDisable, VBox gameData, GridPane roleButtonContainer, VBox rolePrompt, Role plyRole) {
+        Player ply = boardManager.getActivePlayer();
+        if (!ply.getPlayerInRole()) {
+            boardManager.setPlayerRole(ply, plyRole);
+        }
+        gameData.getChildren().remove(roleButtonContainer);
+        gameData.getChildren().remove(rolePrompt);
+        toggleButtons(buttonsToDisable, true);
+    }
+
+    private VBox makePrompt(String promptStr) {
+        VBox promptContainer = new VBox(12);
+
+        Label prompt = new Label(promptStr);
+        prompt.setStyle("-fx-text-fill:WHITE;");
+        prompt.setPrefSize(200, 28);
+        prompt.setAlignment(Pos.TOP_CENTER);
+        prompt.setFont(Font.font("Sylfaen", 18));
+        promptContainer.getChildren().add(prompt);
+        return promptContainer;
+    }
+
+    private GridPane makeRoleBox(ArrayList<Role> roles) {
+        GridPane roleContainer = new GridPane();
+        roleContainer.setAlignment(Pos.CENTER);
+        roleContainer.setPrefSize(234, 200);
+        return roleContainer;
+    }
+
     //TODO Implement takearole()
+    public void takeRole(ArrayList<Button> buttons, VBox gameData, ActionEvent event) {
+        Player activePly = boardManager.getActivePlayer();
+        Room plyRoom = activePly.getPlayerRoom();
+
+        if (!plyRoom.roomHasScene()) {
+            toggleButtons(buttons, true);
+            return;
+        }
+        ArrayList<Role> roles = boardManager.getAvailableRoles(plyRoom.getRoomScene());
+        ObservableList children = gameData.getChildren();
+        Font roleFont = Font.font("Sylfaen", 12);
+        VBox rolePrompt = makePrompt("Choose a Role:");
+        GridPane roleContainer = makeRoleBox(roles);
+        children.addAll(rolePrompt, roleContainer);
+
+        int roleCounter = 0;
+        for (Role plyRole: roles) {
+            Button roleButton = new Button(plyRole.getRoleName());
+            roleButton.setAlignment(Pos.CENTER);
+            int len = plyRole.getRoleName().length();
+            roleButton.setPrefSize(200, 10);
+            roleButton.setFont(roleFont);
+            roleContainer.add(roleButton, roleCounter % 2, roleCounter/2);
+            roleButton.setOnAction(e -> doTakeRoleIo(buttons, gameData, roleContainer, rolePrompt,plyRole));
+            roleCounter++;
+        }
+
+    }
 
     public void setPositionOpen(String roomName, int col, int row){
         boolean[][] temp = roomPositions.get(roomName);
@@ -155,8 +204,10 @@ public class Board_Controller {
     }
 
     public void setAllNotOccupied(boolean[][] roomPositions){
-        for(int i = 0; i < 4; i++) {
-            for (int j = 0; j < 2; j++){
+        int height = roomPositions.length;
+        int width =  roomPositions[0].length;
+        for (int i = 0; i < height; i++) {
+            for (int j = 0; j < width; j++){
                 roomPositions[i][j] = false;
             }
         }
@@ -170,12 +221,12 @@ public class Board_Controller {
             GuiData data;
             String roomName = room.getRoomName();
 
-            for(int i = 1; i <= shotCoordinates.size(); i++){
-                data = shotCoordinates.get(i-1);
+            for(int i = 0; i < shotCoordinates.size(); i++){
+                data = shotCoordinates.get(i);
                 ImageView shotImg = new ImageView(new Image("/resources/imgs/shot.png", data.getWidth(),data.getWidth(), false, false));
                 shotImg.setX(data.getX());
                 shotImg.setY(data.getY());
-                shots.put(sanitizeRoomName(roomName)+i, shotImg);
+                shots.put(sanitizeRoomName(roomName)+(i+1), shotImg);
                 mainFrame.getChildren().add(shotImg);
             }
         }
@@ -228,159 +279,129 @@ public class Board_Controller {
 
     public void setRoomPanes(){
         ArrayList<Room> rms = boardManager.getBoard().getAllRooms();
-        GridPane gp;
         boolean[][] occupiedSpaces;
         String roomName;
-        for(Room rm : rms){
+        for(Room rm : rms) {
+            GridPane gp = new GridPane();
             roomName = sanitizeRoomName(rm.getRoomName());
             occupiedSpaces = new boolean[4][2];
             setAllNotOccupied(occupiedSpaces);
             roomPositions.put(roomName, occupiedSpaces);
-            switch(roomName){
+            switch(roomName) {
                 case "office":
-                    gp = new GridPane();
                     gp.setLayoutX(25);
                     gp.setLayoutY(465);
-                    gp.setPrefSize(90, 180);
-                    roomPanes.put(roomName, gp);
-                    mainFrame.getChildren().add(gp);
                     break;
                 case "trailer":
-                    gp = new GridPane();
                     gp.setLayoutX(1000);
                     gp.setLayoutY(280);
-                    gp.setPrefSize(90, 180);
-                    roomPanes.put(roomName, gp);
-                    mainFrame.getChildren().add(gp);
                     break;
                 case "saloon":
-                    gp = new GridPane();
                     gp.setLayoutX(725);
                     gp.setLayoutY(180);
-                    gp.setPrefSize(90, 180);
-                    roomPanes.put(roomName, gp);
-                    mainFrame.getChildren().add(gp);
                     break;
                 case "bank":
-                    gp = new GridPane();
                     gp.setLayoutX(725);
                     gp.setLayoutY(450);
-                    gp.setPrefSize(90, 180);
-                    roomPanes.put(roomName, gp);
-                    mainFrame.getChildren().add(gp);
                     break;
                 case "trainstation":
-                    gp = new GridPane();
                     gp.setLayoutX(50);
                     gp.setLayoutY(50);
-                    gp.setPrefSize(90, 180);
-                    roomPanes.put(roomName, gp);
-                    mainFrame.getChildren().add(gp);
                     break;
                 case "jail":
-                    gp = new GridPane();
                     gp.setLayoutX(250);
                     gp.setLayoutY(150);
-                    gp.setPrefSize(90, 180);
-                    roomPanes.put(roomName, gp);
-                    mainFrame.getChildren().add(gp);
                     break;
                 case "hotel":
-                    gp = new GridPane();
                     gp.setLayoutX(975);
                     gp.setLayoutY(730);
-                    gp.setPrefSize(90, 180);
-                    roomPanes.put(roomName, gp);
-                    mainFrame.getChildren().add(gp);
                     break;
                 case "ranch":
-                    gp = new GridPane();
                     gp.setLayoutX(225);
                     gp.setLayoutY(600);
-                    gp.setPrefSize(90, 180);
-                    roomPanes.put(roomName, gp);
-                    mainFrame.getChildren().add(gp);
                     break;
                 case "church":
-                    gp = new GridPane();
                     gp.setLayoutX(1050);
                     gp.setLayoutY(260);
-                    gp.setPrefSize(90, 180);
-                    roomPanes.put(roomName, gp);
-                    mainFrame.getChildren().add(gp);
                     break;
                 case "secrethideout":
-                    gp = new GridPane();
                     gp.setLayoutX(245);
                     gp.setLayoutY(810);
-                    gp.setPrefSize(90, 180);
-                    roomPanes.put(roomName, gp);
-                    mainFrame.getChildren().add(gp);
                     break;
                 case "generalstore":
-                    gp = new GridPane();
                     gp.setLayoutX(375);
                     gp.setLayoutY(235);
-                    gp.setPrefSize(90, 180);
-                    roomPanes.put(roomName, gp);
-                    mainFrame.getChildren().add(gp);
                     break;
                 case "mainstreet":
-                    gp = new GridPane();
                     gp.setLayoutX(775);
                     gp.setLayoutY(80);
-                    gp.setPrefSize(90, 180);
-                    roomPanes.put(roomName, gp);
-                    mainFrame.getChildren().add(gp);
                     break;
                 default:
                     System.out.println("Invalid roomName: " + roomName);
                     break;
             }
+            roomPanes.put(roomName, gp);
+            mainFrame.getChildren().add(gp);
         }
     }
 
-    public void setSidePanel(){
-        gameData = new VBox(10);
-        gameData.setLayoutX(1198);
-        gameData.setPrefSize(302, 450);
-        gameData.setStyle("-fx-background-color: lightgreen");
-        gameData.setStyle("-fx-border-color: black");
-        currPlayer = new Label("");
-        currPlayer.setAlignment(Pos.TOP_CENTER);
-        currPlayer.setFont(Font.font ("Sylfaen", 18));
-        gameData.getChildren().add(currPlayer);
+    private void disableSceneButtons(VBox box) {
+        Observable children = box.getChildren();
 
-        playerData = new VBox();
+    }
+
+    private VBox createPlayerDataPane() {
+        VBox playerData = new VBox();
         playerData.setAlignment(Pos.BOTTOM_CENTER);
         playerData.setPrefSize(300, 450);
         playerData.setLayoutX(1198);
         playerData.setLayoutY(450);
         playerData.setStyle("-fx-background-color: lightcoral");
         playerData.setStyle("-fx-border-color: black");
+        return playerData;
+    }
 
+    private VBox createGameDataPane() {
+        VBox gameData = new VBox(10);
+        gameData.setLayoutX(1198);
+        gameData.setPrefSize(302, 450);
+        gameData.setStyle("-fx-background-color: lightgreen");
+        gameData.setStyle("-fx-border-color: black");
+        Label currPlayer = new Label("");
+        currPlayer.setAlignment(Pos.TOP_CENTER);
+        currPlayer.setFont(Font.font ("Sylfaen", 18));
+        gameData.getChildren().add(currPlayer);
+        return gameData;
+    }
+
+    public void setSidePanel(){
+        ArrayList<Button> buttons = new ArrayList<Button>();
+        VBox gameData = createGameDataPane();
+        VBox playerData = createPlayerDataPane();
         HBox topRow = new HBox();
+
         Button moveBut = new Button("Move");
         moveBut.setFont(Font.font("Sylfaen", 18));
         moveBut.setPrefSize(100, 100);
         moveBut.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                moveBut.setDisable(true);
-                generateMovePrompt(event);
-                moveBut.setDisable(false);
+                toggleButtons(buttons, false);
+                generateMovePrompt(buttons, gameData, event);
             }
         });
 
-        Button takeRoleBut = new Button("Take a role");
+        Button takeRoleBut = new Button("Take Role");
+        //takeRoleBut.setDisable();
         takeRoleBut.setFont(Font.font("Sylfaen", 16));
         takeRoleBut.setPrefSize(100, 100);
-//        takeRoleBut.setOnAction(new EventHandler<ActionEvent>() {
-//            @Override
-//            public void handle(ActionEvent event) {
-//
-//            }
-//        });
+        takeRoleBut.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                toggleButtons(buttons, false);
+                takeRole(buttons, gameData, event);
+            }
+        });
 
         Button upgradeBut = new Button("Upgrade");
         upgradeBut.setFont(Font.font("Sylfaen", 18));
@@ -414,14 +435,15 @@ public class Board_Controller {
 //
 //            }
 //        });
+        buttons.addAll(Arrays.asList(takeRoleBut,moveBut,actBut,rehearseBut, upgradeBut));
         botRow.getChildren().addAll(actBut, rehearseBut);
         gameData.getChildren().addAll(topRow, botRow);
         mainFrame.getChildren().addAll(gameData, playerData);
     }
 
-    //Adding dummy comment
 
-    public void moveToRoom(Player plyr, String roomName){
+
+    public void moveToRoom(Player plyr, String roomName) {
         try{
             Image img;
             GridPane gp;
@@ -475,60 +497,11 @@ public class Board_Controller {
     public void createPlayerMarker(Player plyr, int num){
         String color = plyr.getPlayerColor();
         Image playerMarker;
-        int row = num / 2;
-        int col = num % 2;
-        int coords[] = {row, col};
-
-        switch (color){
-            case "white":
-                playerMarker = new Image("/resources/imgs/w"+plyr.getPlayerRank()+".png", 44, 44 , false, true);
-                playerMarkers.put(plyr.getName(), playerMarker);
-                moveToRoom(plyr, "trailer");
-                break;
-            case "green":
-                playerMarker = new Image("/resources/imgs/g"+plyr.getPlayerRank()+".png", 44, 44 , false, true);
-                playerMarkers.put(plyr.getName(), playerMarker);
-                moveToRoom(plyr, "trailer");
-                break;
-            case "violet":
-                playerMarker = new Image("/resources/imgs/v"+plyr.getPlayerRank()+".png", 44, 44 , false, true);
-                playerMarkers.put(plyr.getName(), playerMarker);
-                moveToRoom(plyr, "trailer");
-                break;
-            case "yellow":
-                playerMarker = new Image("/resources/imgs/y"+plyr.getPlayerRank()+".png", 44, 44 , false, true);
-                playerMarkers.put(plyr.getName(), playerMarker);
-                moveToRoom(plyr, "trailer");
-                break;
-            case "orange":
-                playerMarker = new Image("/resources/imgs/o"+plyr.getPlayerRank()+".png", 44, 44 , false, true);
-                playerMarkers.put(plyr.getName(), playerMarker);
-                moveToRoom(plyr, "trailer");
-                break;
-            case "blue":
-                playerMarker = new Image("/resources/imgs/b"+plyr.getPlayerRank()+".png", 44, 44 , false, true);
-                playerMarkers.put(plyr.getName(), playerMarker);
-                moveToRoom(plyr, "trailer");
-                break;
-            case "pink":
-                playerMarker = new Image("/resources/imgs/p"+plyr.getPlayerRank()+".png", 44, 44 , false, true);
-                playerMarkers.put(plyr.getName(), playerMarker);
-                moveToRoom(plyr, "trailer");
-                break;
-            case "red":
-                playerMarker = new Image("/resources/imgs/r"+plyr.getPlayerRank()+".png", 44, 44 , false, true);
-                playerMarkers.put(plyr.getName(), playerMarker);
-                moveToRoom(plyr, "trailer");
-                break;
-            case "cyan":
-                playerMarker = new Image("/resources/imgs/c"+plyr.getPlayerRank()+".png", 44, 44 , false, true);
-                playerMarkers.put(plyr.getName(), playerMarker);
-                moveToRoom(plyr, "trailer");
-                break;
-            default:
-                System.out.println("Invalid color: " + color);
-                break;
-        }
+        String diceImage = "/resources/imgs/" + Character.toString(color.charAt(0)) + plyr.getPlayerRank() + ".png";
+        System.out.println(diceImage);
+        playerMarker = new Image(diceImage, 44, 44 , false, true);
+        playerMarkers.put(plyr.getName(), playerMarker);
+        moveToRoom(plyr, "trailer");
     }
 
     public String sanitizeRoomName(String roomName){
