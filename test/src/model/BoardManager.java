@@ -144,6 +144,22 @@ public final class BoardManager{
         }
     }
 
+    public int getPlayerIndex(Player plyr){
+        for(int i = 0; i < numPlayers; i++){
+            Player plyrTemp = this.gameBoard.getPlayers().get(i);
+            if(plyrTemp == plyr){
+                return i;
+            }
+        }
+        return -2;
+    }
+
+    public void gotoNextPlayer(){
+        int playerIndex = (getPlayerIndex(this.activePlayer) + 1) % numPlayers;
+        assert playerIndex != -1: "Player index cannot be negative.";
+        this.activePlayer = this.gameBoard.getPlayers().get(playerIndex);
+    }
+
     /* Increments the day counter, checks for end of game, and returns winning player if game over and null if not. */
     public boolean cycleGameDay() {
         boolean gameFinished = false;
@@ -222,11 +238,13 @@ public final class BoardManager{
             for (int i = 0; i < diceRolls.size(); i++) {
                 Player onCardPlayer = onCardPlayers.get(diceCounter % onCardPlayers.size());
                 onCardPlayer.setPlayerDollars(onCardPlayer.getPlayerDollars() + diceRolls.get(i));
+                boardController.updateSinglePlayerScore(onCardPlayer);
             }
 
             for (int i = 0; i < offCardPlayers.size(); i++) {
                 Player offCardPlayer = offCardPlayers.get(i);
                 offCardPlayer.setPlayerDollars(offCardPlayer.getPlayerDollars() + offCardPlayer.getRole().getRoleLevel());
+                boardController.updateSinglePlayerScore(offCardPlayer);
             }
         }
         
@@ -238,13 +256,18 @@ public final class BoardManager{
         if (actSuccess) {
             if (plyr.getRole().getIsOnCardRole()) {
                 plyr.setPlayerCredits(plyr.getPlayerCredits() + 2);
+                boardController.updateSinglePlayerScore(plyr);
             } else {
                 plyr.setPlayerDollars(plyr.getPlayerDollars() + 1);
                 plyr.setPlayerCredits(plyr.getPlayerCredits() + 1);
+                boardController.updateSinglePlayerScore(plyr);
             }
-            plyr.getPlayerRoom().getRoomScene().removeShotCounter();
+            Room playerRoom = plyr.getPlayerRoom();
+            playerRoom.getRoomScene().removeShotCounter();
+            boardController.removeShotCounter(playerRoom.getRoomName(), playerRoom.getRoomScene().getShotsRemaining());
         } else if (!actSuccess && !plyr.getRole().getIsOnCardRole()) {
             plyr.setPlayerDollars(plyr.getPlayerDollars() + 1);
+            boardController.updateSinglePlayerScore(plyr);
         }
     }
 

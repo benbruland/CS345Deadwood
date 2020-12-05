@@ -2,23 +2,23 @@
 package model;
 
 import java.util.ArrayList;
-import java.util.Random; 
+import java.util.Random;
 
 public class Board {
 
 	/* Private Attributes */
-	
+
 	// This BoardManager object is responsible for 
     // controling the state of all game objects.
     // The board manager is created in Deadwood.java
     private static BoardManager boardManager = BoardManager.getInstance();
-	
+
 	//This is the card deck
 	private ArrayList<Scene> boardScenes;
-	
+
 	//List of board room objects as parsed from board.xml
 	private ArrayList<Room> boardRooms;
-	
+
 	// deck of all scene cards to be randomly assigned to scenes.
 	private ArrayList<Card> deck;
 
@@ -26,19 +26,19 @@ public class Board {
 
 	private Room castingOffice;
 	private Room trailers;
-	
+
 	private int[] dollarUpgradeCosts;
 	private int[] creditUpgradeCosts;
-	
+
 	/* Public Attributes*/
 
-    
+
     public Board() {
 		this.boardRooms = new ArrayList<Room>();
 		this.boardScenes = new ArrayList<Scene>();
 		this.players = new ArrayList<Player>();
 	}
-	
+
 	public Board(ArrayList<Room> rooms, ArrayList<Card> cardDeck, int[][] costs, Room casting, Room trailer) {
 		this.boardRooms = rooms;
 		this.deck = cardDeck;
@@ -60,18 +60,18 @@ public class Board {
 	// it does this by randomly swapping elements
 	public void shuffleSceneOrder() {
 		int numScenes = this.boardScenes.size();
-		
+
 		for (int i = 0; i < numScenes; i++) {
-			
+
 			int randItem = randomNum(numScenes);
 			Scene temp = this.boardScenes.get(i);
-			
-			this.boardScenes.set(i, this.boardScenes.get(randItem)); 
+
+			this.boardScenes.set(i, this.boardScenes.get(randItem));
 			this.boardScenes.set(randItem, temp);
 		}
-	
+
 	}
-	
+
 	public void printRooms() {
 		System.out.println();
 		ArrayList<Room> rooms = this.boardRooms;
@@ -96,7 +96,7 @@ public class Board {
 		System.out.println("===================================================");
 		System.out.println();
 	}
-	
+
     public void printCosts() {
 		System.out.println();
 		System.out.println("Dollar Costs: ");
@@ -110,13 +110,13 @@ public class Board {
 		}
 		System.out.println();
 	}
-	
+
     public void printBoard() {
 		printRooms();
 		printDeck();
 		printCosts();
 	}
-	
+
 	public Room getPlayerRoom(int playerId) {
 		ArrayList<Room> rooms = this.boardRooms;
 		Player ply = this.players.get(playerId);
@@ -132,12 +132,12 @@ public class Board {
 			for (int i = 0; i < rooms.size() && playerRoom == null; i++) {
 				if (rooms.get(i).roomContainsPlayer(ply)) {
 					playerRoom = rooms.get(i);
-				}	
+				}
 			}
-		}	
+		}
 
 		return playerRoom;
-	} 
+	}
 
 	public Room getRoomByName(String roomName) {
 		ArrayList<Room> rooms = this.getBoardRooms();
@@ -156,11 +156,11 @@ public class Board {
 		return desiredRoom;
 	}
 
-	
+
 	public ArrayList<Card> getDeck() {
 		return this.deck;
 	}
-	
+
 	public ArrayList<Scene> getBoardScenes(){
 		return this.boardScenes;
 	}
@@ -188,7 +188,7 @@ public class Board {
 	public ArrayList<Scene> getScenes(){
 		return this.boardScenes;
 	}
-	
+
 	public ArrayList<Player> getPlayers(){
 		return this.players;
 	}
@@ -254,5 +254,5 @@ public class Board {
 		return this.boardManager;
 	}
 
-	
+
 }

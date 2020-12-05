@@ -1,12 +1,7 @@
 package controller;
 
-import javafx.beans.Observable;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
-import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -31,9 +26,6 @@ import java.util.*;
 
 public class Board_Controller {
 
-
-
-
     private static BoardManager boardManager = null;
     private static Board_Controller boardController = null;
     private Map<String, ImageView> scenes = new HashMap<String, ImageView>();
@@ -41,6 +33,7 @@ public class Board_Controller {
     private Map<String, Image> playerMarkers = new HashMap<String, Image>();
     private Map<String, GridPane> roomPanes = new HashMap<String, GridPane>();
     private Map<String, boolean[][]> roomPositions = new HashMap<String, boolean[][]>();
+    private Map<String, Label> playerScore = new HashMap<String, Label>();
     private HashMap<String, Button> buttonMap = new HashMap<String, Button>();
     public static Stage main;
     public static Parent root;
@@ -133,30 +126,22 @@ public class Board_Controller {
         }
     }
 
-    public void generateMovePrompt(ArrayList<Button> buttons, VBox gameData, ActionEvent event){
+    public void generateMovePrompt(VBox gameData, ActionEvent event){
+        System.out.println("in move prompt");
         ArrayList<String> neighboringRooms = boardManager.getActivePlayer().getPlayerRoom().getNeighborNames();
-        VBox vb = new VBox(12);
-        vb.setAlignment(Pos.CENTER);
-        vb.setPrefSize(234, 200);
-        Label prompt = new Label("Where would you like to move?");
-        prompt.setStyle("-fx-text-fill:WHITE;");
-        prompt.setPrefSize(260, 28);
-        prompt.setAlignment(Pos.TOP_CENTER);
-        prompt.setFont(Font.font("Sylfaen", 18));
-        vb.getChildren().add(prompt);
+        VBox vb = makePrompt("Where would you like to move?", 5);
 
         for(String s : neighboringRooms){
             Button bt = new Button(s);
             bt.setAlignment(Pos.CENTER);
-            bt.setPrefSize(200, 25);
-            bt.setFont(Font.font("Sylfaen", 18));
+            bt.setPrefSize(200, 20);
+            bt.setFont(Font.font("Sylfaen", 16));
             bt.setOnAction(e -> {
 
-                    String desiredRoom = s;
-                    gameData.getChildren().remove(vb);
-                    //This toggles the action buttons back on after they were disabled
-                    //by pressing move
-                    doMoveIo(desiredRoom);
+                String desiredRoom = s;
+                gameData.getChildren().remove(vb);
+                doMoveIo(desiredRoom);
+
             });
             vb.getChildren().add(bt);
         }
@@ -344,14 +329,13 @@ public class Board_Controller {
         enableButtons("act","rehearse");
     }
 
-    private VBox makePrompt(String promptStr) {
-        VBox promptContainer = new VBox(12);
-
+    private VBox makePrompt(String promptStr, int vSpace) {
+        VBox promptContainer = new VBox(vSpace);
+        promptContainer.setAlignment(Pos.TOP_CENTER);
         Label prompt = new Label(promptStr);
-        prompt.setStyle("-fx-text-fill:WHITE;");
-        prompt.setPrefSize(200, 28);
+        prompt.setPrefSize(250, 28);
         prompt.setAlignment(Pos.TOP_CENTER);
-        prompt.setFont(Font.font("Sylfaen", 18));
+        prompt.setFont(Font.font("Sylfaen", 16));
         promptContainer.getChildren().add(prompt);
         return promptContainer;
     }
@@ -364,7 +348,7 @@ public class Board_Controller {
     }
 
 
-    public void takeRole(ArrayList<Button> buttons, VBox gameData, ActionEvent event) {
+    public void takeRoleButtonHandler(ArrayList<Button> buttons, VBox gameData, ActionEvent event) {
         Player activePly = boardManager.getActivePlayer();
         Room plyRoom = activePly.getPlayerRoom();
 
@@ -377,7 +361,7 @@ public class Board_Controller {
         ArrayList<Role> roles = boardManager.getAvailableRoles(plyRoom.getRoomScene());
         ObservableList children = gameData.getChildren();
         Font roleFont = Font.font("Sylfaen", 12);
-        VBox rolePrompt = makePrompt("Choose a Role:");
+        VBox rolePrompt = makePrompt("Choose a Role:", 12);
         GridPane roleContainer = makeRoleBox(roles);
         children.addAll(rolePrompt, roleContainer);
 
@@ -558,12 +542,31 @@ public class Board_Controller {
 
     private VBox createPlayerDataPane() {
         VBox playerData = new VBox();
-        playerData.setAlignment(Pos.BOTTOM_CENTER);
+        playerData.setAlignment(Pos.TOP_CENTER);
         playerData.setPrefSize(300, 450);
         playerData.setLayoutX(1198);
         playerData.setLayoutY(450);
-        playerData.setStyle("-fx-background-color: lightcoral");
         playerData.setStyle("-fx-border-color: black");
+        Label prompt = new Label("Player Data");
+        prompt.setAlignment(Pos.TOP_CENTER);
+        prompt.setFont(Font.font ("Sylfaen", 48));
+
+        GridPane playerInfoContainer = new GridPane();
+        playerInfoContainer.setAlignment(Pos.CENTER);
+        playerInfoContainer.setVgap(10);
+        playerInfoContainer.setPadding(new Insets(10, 5, 10, 5));
+        ArrayList<Player> playerList = boardManager.getBoard().getPlayers();
+        int numPlayers = playerList.size();
+        int row;
+        for(row = 0; row < numPlayers; row++){
+            Player plyr = playerList.get(row);
+            String plyrName = plyr.getName();
+            Label playerInfo = new Label(plyrName + ", Dollars: " + plyr.getPlayerDollars() + ", Credits: " + plyr.getPlayerCredits());
+            playerInfo.setFont(Font.font("Sylfaen", 16));
+            playerScore.put(plyrName, playerInfo);
+            playerInfoContainer.add(playerInfo, 0, row);
+        }
+        playerData.getChildren().addAll(prompt, playerInfoContainer);
         return playerData;
     }
 
@@ -594,25 +597,40 @@ public class Board_Controller {
         return actionButtons;
     }
 
+    public void updateSinglePlayerScore(Player plyr){
+        String playerName = plyr.getName();
+        Label lbl = playerScore.get(playerName);
+        lbl.setText(playerName + ", Dollars: " + plyr.getPlayerDollars() + ", Credits: " + plyr.getPlayerCredits());
+        playerScore.put(playerName, lbl);
+    }
+
+    public void moveButtonHandler(ActionEvent e, VBox gameData){
+        generateMovePrompt(gameData, e);
+    }
+
+    public void endButtonHandler(){
+        boardManager.gotoNextPlayer();
+    }
+
     public void setSidePanel(){
         ArrayList<String> buttonKeys = new ArrayList<String>(Arrays.asList("takerole","move","act","rehearse","upgrade","end"));
         ArrayList<Button> buttons = createActionButtons(buttonKeys);
         addKeysValues(buttonMap, buttonKeys, buttons);
-
         VBox gameData = createGameDataPane();
         VBox playerData = createPlayerDataPane();
         HBox topRow = new HBox();
 
         getButtonById("move").setOnAction(e -> {
-                toggleButtons(buttons, false);
-                generateMovePrompt(buttons, gameData, e);
+            moveButtonHandler(e, gameData);
+        });
 
+        getButtonById("end").setOnAction(e -> {
+            endButtonHandler();
         });
 
         getButtonById("takerole").setOnAction(e -> {
-                toggleButtons(buttons, false);
-                takeRole(buttons, gameData, e);
-            });
+            takeRoleButtonHandler(buttons, gameData, e);
+        });
 
         getButtonById("upgrade").setOnAction(e -> {
                 createUpgradeWindow(e);
@@ -620,12 +638,8 @@ public class Board_Controller {
         );
 
         topRow.getChildren().addAll(getButtonsByIds("move","upgrade","takerole"));
-
         HBox botRow = new HBox();
-
-
         disableButtons("rehearse","upgrade","takerole","act");
-
         botRow.getChildren().addAll(getButtonsByIds("rehearse","act","end"));
         gameData.getChildren().addAll(topRow, botRow);
         mainFrame.getChildren().addAll(gameData, playerData);
@@ -665,7 +679,6 @@ public class Board_Controller {
                 if(roomPosition[i][j] == false){
                     coords[0] = i;
                     coords[1] = j;
-                    System.out.println("open space at position: (" + j + ", " + i + ")");
                     return coords;
                 }
             }
@@ -677,7 +690,6 @@ public class Board_Controller {
         String roomName = sanitizeRoomName(ply.getPlayerRoom().getRoomName());
         GridPane roomPane = roomPanes.get(roomName);
         int[] playerCoords = ply.getPlayerCoordinates();
-        System.out.println("player coordinates: " + playerCoords.toString());
         ObservableList<Node> dicePane = roomPane.getChildren();
         for(Node n : dicePane){
             if((roomPane.getColumnIndex(n) == playerCoords[0] && roomPane.getRowIndex(n) == playerCoords[1])){
