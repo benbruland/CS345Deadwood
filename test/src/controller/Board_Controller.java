@@ -16,6 +16,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -336,6 +337,7 @@ public class Board_Controller {
         prompt.setPrefSize(250, 28);
         prompt.setAlignment(Pos.TOP_CENTER);
         prompt.setFont(Font.font("Sylfaen", 16));
+        prompt.setStyle("-fx-text-fill: white");
         promptContainer.getChildren().add(prompt);
         return promptContainer;
     }
@@ -546,11 +548,11 @@ public class Board_Controller {
         playerData.setPrefSize(300, 450);
         playerData.setLayoutX(1198);
         playerData.setLayoutY(450);
-        playerData.setStyle("-fx-border-color: black");
+        playerData.setStyle("-fx-border-color: white");
         Label prompt = new Label("Player Data");
         prompt.setAlignment(Pos.TOP_CENTER);
         prompt.setFont(Font.font ("Sylfaen", 48));
-
+        prompt.setStyle("-fx-text-fill: white");
         GridPane playerInfoContainer = new GridPane();
         playerInfoContainer.setAlignment(Pos.CENTER);
         playerInfoContainer.setVgap(10);
@@ -560,9 +562,11 @@ public class Board_Controller {
         int row;
         for(row = 0; row < numPlayers; row++){
             Player plyr = playerList.get(row);
+            String plyrColor = plyr.getPlayerColor();
             String plyrName = plyr.getName();
             Label playerInfo = new Label(plyrName + ", Dollars: " + plyr.getPlayerDollars() + ", Credits: " + plyr.getPlayerCredits());
-            playerInfo.setFont(Font.font("Sylfaen", 16));
+            playerInfo.setFont(Font.font("Sylfaen", FontWeight.BOLD, 16));
+            playerInfo.setStyle("-fx-text-fill: " + plyrColor);
             playerScore.put(plyrName, playerInfo);
             playerInfoContainer.add(playerInfo, 0, row);
         }
@@ -574,8 +578,7 @@ public class Board_Controller {
         VBox gameData = new VBox(10);
         gameData.setLayoutX(1198);
         gameData.setPrefSize(302, 450);
-        gameData.setStyle("-fx-background-color: lightgreen");
-        gameData.setStyle("-fx-border-color: black");
+        gameData.setStyle("-fx-border-color: white");
         Label currPlayer = new Label("");
         currPlayer.setAlignment(Pos.TOP_CENTER);
         currPlayer.setFont(Font.font ("Sylfaen", 18));
@@ -597,6 +600,20 @@ public class Board_Controller {
         return actionButtons;
     }
 
+    public void updateActivePlayer(Player prevPlyr, Player plyr, int fontSize){
+        String playerName = prevPlyr.getName();
+        Label lbl = playerScore.get(playerName);
+        lbl.setAlignment(Pos.TOP_CENTER);
+        lbl.setFont(Font.font("Sylfaen", 16));
+        playerScore.put(playerName, lbl);
+
+        playerName = plyr.getName();
+        lbl = playerScore.get(playerName);
+        lbl.setAlignment(Pos.TOP_CENTER);
+        lbl.setFont(Font.font("Sylfaen", fontSize));
+        playerScore.put(playerName, lbl);
+    }
+
     public void updateSinglePlayerScore(Player plyr){
         String playerName = plyr.getName();
         Label lbl = playerScore.get(playerName);
@@ -609,7 +626,11 @@ public class Board_Controller {
     }
 
     public void endButtonHandler(){
+        Player prevPlyr = boardManager.getActivePlayer();
         boardManager.gotoNextPlayer();
+        Player plyr = boardManager.getActivePlayer();
+        updateActivePlayer(prevPlyr, plyr, 20);
+
     }
 
     public void setSidePanel(){
@@ -729,6 +750,8 @@ public class Board_Controller {
         System.out.println("after setScenes");
         boardController.setSidePanel();
         System.out.println("after setSidePanel");
+        updateActivePlayer(boardManager.getActivePlayer(), boardManager.getActivePlayer(), 20);
+        System.out.println("After updating active player initially");
 
     }
 

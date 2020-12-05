@@ -19,7 +19,7 @@ public final class BoardManager{
     private int dayOfGame = 1;    // Current day of game
     private int numberOfDays; // Total number of days to play
     private int numberOfScenesRemaining; //number of scenes remaining in a particular day
-    private String colors[] = {"white", "red", "violet", "yellow", "pink", "cyan", "green", "blue", "orange"};
+    private String colors[] = {"magenta", "red", "violet", "yellow", "pink", "cyan", "green", "blue", "orange"};
     
     //BoardManager is a singleton class. This is the instance var
     private static BoardManager instance;
