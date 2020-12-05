@@ -103,10 +103,8 @@ public class Board_Controller {
         }
     }
 
-    public void doMoveIo(String roomChoice) {
+    public void doMoveIo(ArrayList<String> actionList, String roomChoice) {
         Player ply = boardManager.getActivePlayer();
-        setButtonStates(true, "move");
-
         if (ply.getPlayerInRole()) {
             showDialog("Move Failure", "The Player may not move, because the player is in a role.");
             return;
@@ -116,9 +114,9 @@ public class Board_Controller {
         boardController.removeFromRoom(ply);
         boardController.moveToRoom(ply, roomChoice);
         Room roomOfChoice = boardManager.getBoard().getRoomByName(roomChoice);
-        ArrayList<String> validActions = boardManager.getValidActions(ply);
-        setButtonStates(true, validActions);
         ply.move(roomOfChoice);
+        boardManager.registerAction(actionList, ply, "move");
+        updateButtonStates(actionList);
         /* if scene card is face down */
         Room plyRoom = ply.getPlayerRoom();
         if (!ply.getPlayerRoom().getFlippedOver()){
@@ -127,7 +125,7 @@ public class Board_Controller {
         }
     }
 
-    public void generateMovePrompt(VBox gameData, ActionEvent event){
+    public void generateMovePrompt(ArrayList<String> actionList, VBox gameData, ActionEvent event){
         System.out.println("in move prompt");
         ArrayList<String> neighboringRooms = boardManager.getActivePlayer().getPlayerRoom().getNeighborNames();
         VBox vb = makePrompt("Where would you like to move?", 5);
@@ -141,7 +139,7 @@ public class Board_Controller {
 
                 String desiredRoom = s;
                 gameData.getChildren().remove(vb);
-                doMoveIo(desiredRoom);
+                doMoveIo(actionList, desiredRoom);
 
             });
             vb.getChildren().add(bt);
@@ -310,10 +308,9 @@ public class Board_Controller {
         toggleButtons(buttonsToEnable, true);
     }
 
-    private void updateButtonStates() {
-        ArrayList<String> validActions = this.boardManager.getValidActions(this.boardManager.getActivePlayer());
+    private void updateButtonStates(ArrayList<String> actionList) {
         toggleButtons(getButtonsByIds("move","act","rehearse","takerole","upgrade","end"), false);
-
+        setButtonStates(true, actionList);
     }
 
     private void doTakeRoleIo(VBox gameData, GridPane roleButtonContainer, VBox rolePrompt, Role plyRole) {
@@ -323,11 +320,9 @@ public class Board_Controller {
             boardManager.setPlayerRole(ply, plyRole);
             dialogMessage = "Successfully took role: " + plyRole.getRoleName();
         }
-
         showDialog("Take Role Attempt", dialogMessage);
         gameData.getChildren().remove(roleButtonContainer);
         gameData.getChildren().remove(rolePrompt);
-        enableButtons("act","rehearse");
     }
 
     private VBox makePrompt(String promptStr, int vSpace) {
@@ -350,15 +345,18 @@ public class Board_Controller {
     }
 
 
-    public void takeRoleButtonHandler(ArrayList<Button> buttons, VBox gameData, ActionEvent event) {
+    public void takeRoleButtonHandler(ArrayList<String> actionList,
+                                      ArrayList<Button> buttons, VBox gameData, ActionEvent event) {
         Player activePly = boardManager.getActivePlayer();
         Room plyRoom = activePly.getPlayerRoom();
 
         if (!plyRoom.roomHasScene()) {
-            toggleButtons(buttons, true);
             showDialog("No roles", "There are no roles in the casting office, or the trailers.");
             return;
         }
+
+        actionList = boardManager.registerAction(actionList, activePly, "takerole");
+        updateButtonStates(actionList);
 
         ArrayList<Role> roles = boardManager.getAvailableRoles(plyRoom.getRoomScene());
         ObservableList children = gameData.getChildren();
@@ -621,40 +619,75 @@ public class Board_Controller {
         playerScore.put(playerName, lbl);
     }
 
-    public void moveButtonHandler(ActionEvent e, VBox gameData){
-        generateMovePrompt(gameData, e);
+    public void moveButtonHandler(ArrayList<String> actionList, ActionEvent e, VBox gameData) {
+        //updateButtonStates(actionList);
+        generateMovePrompt(actionList, gameData, e);
     }
 
-    public void endButtonHandler(){
+    public void endButtonHandler(ArrayList<String> actionList) {
         Player prevPlyr = boardManager.getActivePlayer();
         boardManager.gotoNextPlayer();
         Player plyr = boardManager.getActivePlayer();
         updateActivePlayer(prevPlyr, plyr, 20);
-
+        actionList = boardManager.getValidActions(plyr);
+        updateButtonStates(actionList);
     }
 
-    public void setSidePanel(){
+
+
+    public void actButtonHandler(ArrayList<String> actionList) {
+        Player activePly = boardManager.getActivePlayer();
+        actionList = boardManager.registerAction(actionList, activePly, "act");
+        updateButtonStates(actionList);
+    }
+
+
+    public void rehearseButtonHandler(ArrayList<String> actionList) {
+        Player activePly = boardManager.getActivePlayer();
+        actionList = boardManager.registerAction(actionList, activePly, "rehearse");
+        updateButtonStates(actionList);
+    }
+
+    public void setSidePanel() {
         ArrayList<String> buttonKeys = new ArrayList<String>(Arrays.asList("takerole","move","act","rehearse","upgrade","end"));
         ArrayList<Button> buttons = createActionButtons(buttonKeys);
+        Player activePly = boardManager.getActivePlayer();
+        ArrayList<String> actionList = boardManager.getValidActions(activePly);
         addKeysValues(buttonMap, buttonKeys, buttons);
         VBox gameData = createGameDataPane();
         VBox playerData = createPlayerDataPane();
         HBox topRow = new HBox();
 
         getButtonById("move").setOnAction(e -> {
-            moveButtonHandler(e, gameData);
+            disableButtons("move");
+            moveButtonHandler(actionList, e, gameData);
         });
 
         getButtonById("end").setOnAction(e -> {
-            endButtonHandler();
+            endButtonHandler(actionList);
         });
 
         getButtonById("takerole").setOnAction(e -> {
-            takeRoleButtonHandler(buttons, gameData, e);
+            disableButtons("takerole");
+            takeRoleButtonHandler(actionList, buttons, gameData, e);
         });
 
         getButtonById("upgrade").setOnAction(e -> {
+                disableButtons("upgrade");
                 createUpgradeWindow(e);
+                boardManager.registerAction(actionList, activePly, "upgrade");
+            }
+        );
+
+        getButtonById("act").setOnAction(e -> {
+                disableButtons("act");
+                actButtonHandler(actionList);
+            }
+        );
+
+        getButtonById("rehearse").setOnAction(e -> {
+                disableButtons("rehearse");
+                rehearseButtonHandler(actionList);
             }
         );
 
