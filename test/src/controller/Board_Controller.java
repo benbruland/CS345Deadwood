@@ -831,8 +831,6 @@ public class Board_Controller {
         System.out.println("after setSidePanel");
         updateActivePlayer(boardManager.getActivePlayer(), boardManager.getActivePlayer(), 20);
         System.out.println("After updating active player initially");
-
     }
-
 }
 
