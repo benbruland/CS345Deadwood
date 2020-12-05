@@ -273,14 +273,21 @@ public class Board_Controller {
         int dollars = currencySelection == "Dollars" ? plyr.getPlayerDollars() : 0;
         int credits = currencySelection == "Credits" ? plyr.getPlayerCredits() : 0;
         boolean success = plyr.upgrade(rankSelection, dollars, credits);
+        updateSinglePlayerScore(plyr);
         if(success){
             showDialog("Successful Upgrade", "Player rank upgraded to rank " + plyr.getPlayerRank());
-            // TODO Change player Dice based on new rank
+            removeFromRoom(plyr);
+            playerMarkers.remove(plyr.getName());
+            String color = plyr.getPlayerColor();
+            String diceImage = "/resources/imgs/" + color.charAt(0) + plyr.getPlayerRank() + ".png";
+            System.out.println(diceImage);
+            ImageView imgV = new ImageView(new Image(diceImage, 45, 45 , false, true));
+            playerMarkers.put(plyr.getName(), imgV);
+            moveToRoom(plyr, "office");
             prevWindow.close();
         }
         else{
             showDialog("Error upgrading", "Player does not have sufficient currency to upgrade to rank " + rankSelection);
-            prevWindow.close();
         }
     }
 
@@ -376,7 +383,7 @@ public class Board_Controller {
     public void takeRoleButtonHandler(ArrayList<String> actionList, ArrayList<Button> buttons, VBox gameData, ActionEvent event) {
         Player activePly = boardManager.getActivePlayer();
         Room plyRoom = activePly.getPlayerRoom();
-        disableButtons("end");
+        disableButtons("end", "move");
 
 
         if (!plyRoom.roomHasScene()) {
@@ -791,7 +798,7 @@ public class Board_Controller {
     public void createPlayerMarker(Player plyr, int num){
         String color = plyr.getPlayerColor();
         ImageView playerMarker;
-        String diceImage = "/resources/imgs/" + Character.toString(color.charAt(0)) + plyr.getPlayerRank() + ".png";
+        String diceImage = "/resources/imgs/" + color.charAt(0) + plyr.getPlayerRank() + ".png";
         System.out.println(diceImage);
         playerMarker = new ImageView(new Image(diceImage, 45, 45 , false, true));
         playerMarkers.put(plyr.getName(), playerMarker);
