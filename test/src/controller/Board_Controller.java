@@ -34,13 +34,14 @@ public class Board_Controller {
 
 
 
-    public static BoardManager boardManager = null;
-    public static Board_Controller boardController = null;
-    public Map<String, ImageView> scenes = new HashMap<String, ImageView>();
-    public Map<String, ImageView> shots = new HashMap<String, ImageView>();
-    public Map<String, Image> playerMarkers = new HashMap<String, Image>();
-    public Map<String, GridPane> roomPanes = new HashMap<String, GridPane>();
-    public Map<String, boolean[][]> roomPositions = new HashMap<String, boolean[][]>();
+    private static BoardManager boardManager = null;
+    private static Board_Controller boardController = null;
+    private Map<String, ImageView> scenes = new HashMap<String, ImageView>();
+    private Map<String, ImageView> shots = new HashMap<String, ImageView>();
+    private Map<String, Image> playerMarkers = new HashMap<String, Image>();
+    private Map<String, GridPane> roomPanes = new HashMap<String, GridPane>();
+    private Map<String, boolean[][]> roomPositions = new HashMap<String, boolean[][]>();
+    private HashMap<String, Button> buttonMap = new HashMap<String, Button>();
     public static Stage main;
     public static Parent root;
     public static Pane mainFrame;
@@ -96,6 +97,42 @@ public class Board_Controller {
 
     }
 
+    private void setButtonStates(boolean buttonIsOn, String ... buttonIds) {
+        for (String id: buttonIds) {
+            this.buttonMap.get(id).setDisable(!buttonIsOn);
+        }
+    }
+
+    private void setButtonStates(boolean buttonIsOn, ArrayList<String> buttonIds) {
+        for (String id: buttonIds) {
+            this.buttonMap.get(id).setDisable(!buttonIsOn);
+        }
+    }
+
+    public void doMoveIo(String roomChoice) {
+        Player ply = boardManager.getActivePlayer();
+        setButtonStates(true, "move");
+
+        if (ply.getPlayerInRole()) {
+            showDialog("Move Failure", "The Player may not move, because the player is in a role.");
+            return;
+        }
+
+        String roomName = ply.getPlayerRoom().getRoomName();
+        boardController.removeFromRoom(ply);
+        boardController.moveToRoom(ply, roomChoice);
+        Room roomOfChoice = boardManager.getBoard().getRoomByName(roomChoice);
+        ArrayList<String> validActions = boardManager.getValidActions(ply);
+        setButtonStates(true, validActions);
+        ply.move(roomOfChoice);
+        /* if scene card is face down */
+        Room plyRoom = ply.getPlayerRoom();
+        if (!ply.getPlayerRoom().getFlippedOver()){
+            flipCardImage(plyRoom.getRoomScene().getImageTitle(), plyRoom.getRoomName());
+            plyRoom.setFlippedOver(true);
+        }
+    }
+
     public void generateMovePrompt(ArrayList<Button> buttons, VBox gameData, ActionEvent event){
         ArrayList<String> neighboringRooms = boardManager.getActivePlayer().getPlayerRoom().getNeighborNames();
         VBox vb = new VBox(12);
@@ -117,9 +154,9 @@ public class Board_Controller {
 
                     String desiredRoom = s;
                     gameData.getChildren().remove(vb);
-                    toggleButtons(buttons, true);
-                    boardManager.doMoveIo(desiredRoom);
-
+                    //This toggles the action buttons back on after they were disabled
+                    //by pressing move
+                    doMoveIo(desiredRoom);
             });
             vb.getChildren().add(bt);
         }
@@ -206,9 +243,11 @@ public class Board_Controller {
         submitBut.setLayoutY(370);
         submitBut.setPrefSize(600, 30);
         submitBut.setOnAction(e -> { try{
-                                        processUpgrade(e,((RadioButton)rankGrp.getSelectedToggle()).getText(), ((RadioButton)selectionGrp.getSelectedToggle()).getText());
+                                        processUpgrade(e,((RadioButton)rankGrp.getSelectedToggle()).getText(),
+                                                ((RadioButton)selectionGrp.getSelectedToggle()).getText());
                                     } catch(Exception excep){
-                                        showDialog("Invalid Upgrade", "Rank selection and payment type buttons must be selected.");}});
+                                        showDialog("Invalid Upgrade",
+                                                "Rank selection and payment type buttons must be selected.");}});
         root.getChildren().addAll(payPrompt, dollarBut, creditBut, submitBut);
         Scene upgradeScene = new Scene(root, 600, 400);
         upgradeWindow.setScene(upgradeScene);
@@ -269,20 +308,40 @@ public class Board_Controller {
         dialog.showAndWait();
     }
 
-    private void toggleButtons(ArrayList<Button> buttons, boolean buttonOn) {
+    private void toggleButtons(ArrayList<Button> buttons, boolean buttonIsOn) {
         for (Button btn: buttons) {
-            btn.setDisable(!buttonOn);
+            btn.setDisable(!buttonIsOn);
         }
     }
 
-    private void doTakeRoleIo(ArrayList<Button> buttonsToDisable, VBox gameData, GridPane roleButtonContainer, VBox rolePrompt, Role plyRole) {
+    private void disableButtons(String ... buttonIds) {
+        ArrayList<Button> buttonsToDisable = getButtonsByIds(buttonIds);
+        toggleButtons(buttonsToDisable, false);
+    }
+
+    private void enableButtons(String ... buttonIds) {
+        ArrayList<Button> buttonsToEnable = getButtonsByIds(buttonIds);
+        toggleButtons(buttonsToEnable, true);
+    }
+
+    private void updateButtonStates() {
+        ArrayList<String> validActions = this.boardManager.getValidActions(this.boardManager.getActivePlayer());
+        toggleButtons(getButtonsByIds("move","act","rehearse","takerole","upgrade","end"), false);
+
+    }
+
+    private void doTakeRoleIo(VBox gameData, GridPane roleButtonContainer, VBox rolePrompt, Role plyRole) {
         Player ply = boardManager.getActivePlayer();
+        String dialogMessage = "Failed to take the role! You are already in a role.";
         if (!ply.getPlayerInRole()) {
             boardManager.setPlayerRole(ply, plyRole);
+            dialogMessage = "Successfully took role: " + plyRole.getRoleName();
         }
+
+        showDialog("Take Role Attempt", dialogMessage);
         gameData.getChildren().remove(roleButtonContainer);
         gameData.getChildren().remove(rolePrompt);
-        toggleButtons(buttonsToDisable, true);
+        enableButtons("act","rehearse");
     }
 
     private VBox makePrompt(String promptStr) {
@@ -304,34 +363,44 @@ public class Board_Controller {
         return roleContainer;
     }
 
-    //TODO Resolve !plyToom.roomHasScene() call
-//    public void takeRole(ArrayList<Button> buttons, VBox gameData, ActionEvent event) {
-//        Player activePly = boardManager.getActivePlayer();
-//        Room plyRoom = activePly.getPlayerRoom();
-//
-//        if (!plyRoom.roomHasScene()) {
-//            toggleButtons(buttons, true);
-//            return;
-//        }
-//        ArrayList<Role> roles = boardManager.getAvailableRoles(plyRoom.getRoomScene());
-//        ObservableList children = gameData.getChildren();
-//        Font roleFont = Font.font("Sylfaen", 12);
-//        VBox rolePrompt = makePrompt("Choose a Role:");
-//        GridPane roleContainer = makeRoleBox(roles);
-//        children.addAll(rolePrompt, roleContainer);
-//
-//        int roleCounter = 0;
-//        for (Role plyRole: roles) {
-//            Button roleButton = new Button(plyRole.getRoleName());
-//            roleButton.setAlignment(Pos.CENTER);
-//            int len = plyRole.getRoleName().length();
-//            roleButton.setPrefSize(200, 10);
-//            roleButton.setFont(roleFont);
-//            roleContainer.add(roleButton, roleCounter % 2, roleCounter/2);
-//            roleButton.setOnAction(e -> doTakeRoleIo(buttons, gameData, roleContainer, rolePrompt,plyRole));
-//            roleCounter++;
-//        }
-//    }
+
+    public void takeRole(ArrayList<Button> buttons, VBox gameData, ActionEvent event) {
+        Player activePly = boardManager.getActivePlayer();
+        Room plyRoom = activePly.getPlayerRoom();
+
+        if (!plyRoom.roomHasScene()) {
+            toggleButtons(buttons, true);
+            showDialog("No roles", "There are no roles in the casting office, or the trailers.");
+            return;
+        }
+
+        ArrayList<Role> roles = boardManager.getAvailableRoles(plyRoom.getRoomScene());
+        ObservableList children = gameData.getChildren();
+        Font roleFont = Font.font("Sylfaen", 12);
+        VBox rolePrompt = makePrompt("Choose a Role:");
+        GridPane roleContainer = makeRoleBox(roles);
+        children.addAll(rolePrompt, roleContainer);
+
+        int roleCounter = 0;
+        for (Role plyRole: roles) {
+            Button roleButton = new Button(plyRole.getRoleName());
+            roleButton.setAlignment(Pos.CENTER);
+            int len = plyRole.getRoleName().length();
+            roleButton.setPrefSize(200, 10);
+            roleButton.setFont(roleFont);
+            roleContainer.add(roleButton, roleCounter % 2, roleCounter/2);
+            roleButton.setOnAction(e -> doTakeRoleIo(gameData, roleContainer, rolePrompt,plyRole));
+            roleCounter++;
+        }
+    }
+
+    private ArrayList<Button> getButtonsByIds(String ... ids) {
+        ArrayList<Button> requestedButtons = new ArrayList<Button>();
+        for (String id: ids) {
+            requestedButtons.add(this.buttonMap.get(id));
+        }
+        return requestedButtons;
+    }
 
     public void setPositionOpen(String roomName, int col, int row){
         boolean[][] temp = roomPositions.get(roomName);
@@ -487,11 +556,6 @@ public class Board_Controller {
         }
     }
 
-    private void disableSceneButtons(VBox box) {
-        Observable children = box.getChildren();
-
-    }
-
     private VBox createPlayerDataPane() {
         VBox playerData = new VBox();
         playerData.setAlignment(Pos.BOTTOM_CENTER);
@@ -516,74 +580,62 @@ public class Board_Controller {
         return gameData;
     }
 
+    ArrayList<Button> createActionButtons(ArrayList<String> actions) {
+        Font buttonFont = Font.font("Sylfaen", 15);
+        ArrayList<Button> actionButtons = new ArrayList<Button>();
+
+        for (String action: actions) {
+            Button newButton = new Button(action);
+            newButton.setPrefSize(150,75);
+            newButton.setFont(buttonFont);
+            actionButtons.add(newButton);
+        }
+
+        return actionButtons;
+    }
+
     public void setSidePanel(){
-        ArrayList<Button> buttons = new ArrayList<Button>();
+        ArrayList<String> buttonKeys = new ArrayList<String>(Arrays.asList("takerole","move","act","rehearse","upgrade","end"));
+        ArrayList<Button> buttons = createActionButtons(buttonKeys);
+        addKeysValues(buttonMap, buttonKeys, buttons);
+
         VBox gameData = createGameDataPane();
         VBox playerData = createPlayerDataPane();
         HBox topRow = new HBox();
 
-        Button moveBut = new Button("Move");
-        moveBut.setFont(Font.font("Sylfaen", 18));
-        moveBut.setPrefSize(100, 100);
-        moveBut.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
+        getButtonById("move").setOnAction(e -> {
                 toggleButtons(buttons, false);
-                generateMovePrompt(buttons, gameData, event);
-            }
+                generateMovePrompt(buttons, gameData, e);
+
         });
 
-        Button takeRoleBut = new Button("Take Role");
-        //takeRoleBut.setDisable();
-        takeRoleBut.setFont(Font.font("Sylfaen", 16));
-        takeRoleBut.setPrefSize(100, 100);
-        takeRoleBut.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
+        getButtonById("takerole").setOnAction(e -> {
                 toggleButtons(buttons, false);
-                //TODO Resolve takeRole call
-                //takeRole(buttons, gameData, event);
-            }
-        });
+                takeRole(buttons, gameData, e);
+            });
 
-        Button upgradeBut = new Button("Upgrade");
-        upgradeBut.setFont(Font.font("Sylfaen", 18));
-        upgradeBut.setPrefSize(100, 100);
-        upgradeBut.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                createUpgradeWindow(event);
+        getButtonById("upgrade").setOnAction(e -> {
+                createUpgradeWindow(e);
             }
-        });
-        topRow.getChildren().addAll(moveBut, takeRoleBut, upgradeBut);
+        );
+
+        topRow.getChildren().addAll(getButtonsByIds("move","upgrade","takerole"));
 
         HBox botRow = new HBox();
 
-        Button actBut = new Button("Act");
-        actBut.setFont(Font.font("Sylfaen", 28));
-        actBut.setPrefSize(150, 100);
-//        actBut.setOnAction(new EventHandler<ActionEvent>() {
-//            @Override
-//            public void handle(ActionEvent event) {
-//                generateMovePrompt(event);
-//            }
-//        });
 
-        Button rehearseBut = new Button("Rehearse");
-        rehearseBut.setFont(Font.font("Sylfaen", 28));
-        rehearseBut.setPrefSize(150, 100);
-//        rehearseBut.setOnAction(new EventHandler<ActionEvent>() {
-//            @Override
-//            public void handle(ActionEvent event) {
-//
-//            }
-//        });
-        buttons.addAll(Arrays.asList(takeRoleBut,moveBut,actBut,rehearseBut, upgradeBut));
-        botRow.getChildren().addAll(actBut, rehearseBut);
+        disableButtons("rehearse","upgrade","takerole","act");
+
+        botRow.getChildren().addAll(getButtonsByIds("rehearse","act","end"));
         gameData.getChildren().addAll(topRow, botRow);
         mainFrame.getChildren().addAll(gameData, playerData);
     }
 
+    private void addKeysValues(HashMap<String,Button> map, ArrayList<String> keys, ArrayList<Button> values) {
+        for (int i = 0; i < keys.size(); i++) {
+            map.put(keys.get(i), values.get(i));
+        }
+    }
 
 
     public void moveToRoom(Player plyr, String roomName) {
@@ -651,6 +703,10 @@ public class Board_Controller {
         return roomName.toLowerCase().replace(" ", "");
     }
 
+    private Button getButtonById(String id) {
+        return this.buttonMap.get(id);
+    }
+
     public void initialize() throws Exception{
         System.out.println("In initialize method in Board_Controller");
         Board_Controller boardController = Board_Controller.getInstance();
@@ -661,13 +717,6 @@ public class Board_Controller {
         System.out.println("after setScenes");
         boardController.setSidePanel();
         System.out.println("after setSidePanel");
-//        boardController.removeShotCounter("Saloon", 2);
-//        System.out.println("after shot counter removed");
-//        boardController.flipCardImage("01.png", "Saloon");
-//        System.out.println("after card image flipped");
-//        boardController.removeShotCounter("Jail", 1);
-//        boardController.removeCardImage("Jail");
-//        System.out.println("after shot AND card image removal");
 
     }
 
