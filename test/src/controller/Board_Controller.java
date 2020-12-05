@@ -318,12 +318,15 @@ public class Board_Controller {
         Player ply = boardManager.getActivePlayer();
         actionList = boardManager.registerAction(actionList, ply, "takerole");
         updateButtonStates(actionList);
-        String dialogMessage = "Failed to take the role! You are already in a role.";
-        if (!ply.getPlayerInRole()) {
+        String dialogMessage = "This role is too high in rank for you";
+        if (!ply.getPlayerInRole() && ply.playerCanTakeRole(plyRole)) {
             boardManager.setPlayerRole(ply, plyRole);
             setPlayerMarkerToRole(ply, plyRole);
             dialogMessage = "Successfully took role: " + plyRole.getRoleName();
+        } else {
+            enableButtons("takerole");
         }
+
         showDialog("Take Role Attempt", dialogMessage);
         gameData.getChildren().remove(roleButtonContainer);
         gameData.getChildren().remove(rolePrompt);
