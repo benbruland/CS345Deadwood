@@ -474,7 +474,12 @@ public class Board_Controller {
 
     public void flipCardImage(String imgTitle, String roomName){
         String sceneName = sanitizeRoomName(roomName)+"scene";
-        assert scenes.get(sceneName) != null: "Scene cannot be removed from map, is not in map";
+        assert cardBacks.get(sceneName) != null: "Scene cannot be removed from map, is not in map";
+        ImageView cardBack = cardBacks.get(sanitizeRoomName(roomName));
+        if(cardBack != null) {
+            cardBack.setImage(null);
+            cardBacks.put(sanitizeRoomName(roomName), cardBack);
+        }
         GuiData data = boardManager.getBoard().getRoomByName(roomName).getGuiData();
         ImageView img = new ImageView(new Image("/resources/imgs/"+imgTitle, data.getWidth(), data.getHeight() , false, true));
         img.setX(data.getX());
