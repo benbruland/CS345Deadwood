@@ -82,12 +82,16 @@ public final class BoardManager{
         switch(numPlayers) {
             case 5:
                 newPlayer.setPlayerCredits(2);
+                break;
             case 6:
                 newPlayer.setPlayerCredits(4);
+                break;
             case 7:
                 newPlayer.setRank(2);
+                break;
             case 8:
                 newPlayer.setRank(2);
+                break;
         }
 
         this.gameBoard.getTrailers().addPlayerToRoom(newPlayer);
