@@ -548,8 +548,8 @@ public class Board_Controller {
                     gp.setLayoutY(600);
                     break;
                 case "church":
-                    gp.setLayoutX(1050);
-                    gp.setLayoutY(260);
+                    gp.setLayoutX(730);
+                    gp.setLayoutY(645);
                     break;
                 case "secrethideout":
                     gp.setLayoutX(245);

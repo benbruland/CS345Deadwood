@@ -15,12 +15,12 @@ import java.util.Random;
 public final class BoardManager{
 
     /* Primitive Attributes */
-    private int numPlayers;   
+    private int numPlayers;
     private int dayOfGame = 1;    // Current day of game
     private int numberOfDays; // Total number of days to play
     private int numberOfScenesRemaining; //number of scenes remaining in a particular day
     private String colors[] = {"magenta", "red", "violet", "yellow", "pink", "cyan", "green", "blue", "orange"};
-    
+
     //BoardManager is a singleton class. This is the instance var
     private static BoardManager instance;
 
@@ -50,7 +50,7 @@ public final class BoardManager{
     }
 
     public static BoardManager getInstance(int numPlyrs, ArrayList<String> nameList) {
-        
+
         if (BoardManager.instance == null) {
             BoardManager.instance = new BoardManager(numPlyrs, nameList);
         }
@@ -61,18 +61,18 @@ public final class BoardManager{
     public static BoardManager getInstance() {
         if (BoardManager.instance == null) {
             BoardManager.instance = new BoardManager();
-        } 
+        }
         return BoardManager.instance;
     }
 
 
     private Player chooseFirstPlayer() {
-       
+
         assert this.gameBoard != null : "Gameboard not initialized before choosing first player";
         assert this.gameBoard.getPlayers().size() > 0 : "Gameboard players array not filled";
-       
+
         int playerIndex = randInt(0, this.numPlayers - 1);
-        return this.gameBoard.getPlayers().get(playerIndex); 
+        return this.gameBoard.getPlayers().get(playerIndex);
     }
 
     private Player makeInitialPlayer(int numPlayers, int playerID) {
@@ -114,14 +114,14 @@ public final class BoardManager{
         this.gameBoard = parser.parseBoard();
         Board board = this.gameBoard;
         ArrayList<Player> players = new ArrayList<Player>();
-        
+
         for (int i = 0; i < numPlayers; i++) {
             Player newPlayer = makeInitialPlayer(numPlayers, i);
             newPlayer.setName(nameList.get(i));
             System.out.println("Setting Player name to " + nameList.get(i));
             players.add(newPlayer);
         }
-       
+
         board.setPlayers(players);
         this.numberOfScenesRemaining = 10;
         this.dealScenes(numberOfScenesRemaining);
@@ -186,7 +186,7 @@ public final class BoardManager{
 
         Random randGen = new Random();
         int randomNum = randGen.nextInt((max - min) + 1) + min;
-    
+
         return randomNum;
     }
 
@@ -204,7 +204,7 @@ public final class BoardManager{
             int playerScore = calculatePlayerScore(plyr);
             if(playerScore > maxScore){
                 maxScore = playerScore;
-            }    
+            }
         }
 
         for (Player plyr: plyrs) {
@@ -218,23 +218,23 @@ public final class BoardManager{
     }
 
     private ArrayList<Integer> getBonusDice(int budget) {
-        
+
         ArrayList<Integer> diceRolls = new ArrayList<Integer>();
         for (int i = 0; i < budget; i++) {
             diceRolls.add(randInt(1,6));
         }
         return diceRolls;
     }
-    
+
     public void payBonuses(Room roomToPayout) {
         Card roomCard = roomToPayout.getRoomScene().getSceneCard();
         int budget = roomCard.getBudget();
         ArrayList<Player> offCardPlayers = roomToPayout.getPlayersOffCard();
         ArrayList<Player> onCardPlayers = roomToPayout.getPlayersOnCard();
         onCardPlayers.sort((Player a, Player b) -> compareRoles(a.getRole(), b.getRole()));
-        
+
         if (onCardPlayers.size() != 0) {
-            
+
             ArrayList<Integer> diceRolls = getBonusDice(budget);
             diceRolls.sort(Collections.reverseOrder());
             int diceCounter = 0;
@@ -251,7 +251,7 @@ public final class BoardManager{
                 boardController.updateSinglePlayerScore(offCardPlayer);
             }
         }
-        
+
     }
 
     // This will be called when a player acts on a role regardless of the outcome
@@ -267,8 +267,8 @@ public final class BoardManager{
                 boardController.updateSinglePlayerScore(plyr);
             }
             Room playerRoom = plyr.getPlayerRoom();
-            playerRoom.getRoomScene().removeShotCounter();
             boardController.removeShotCounter(playerRoom.getRoomName(), playerRoom.getRoomScene().getShotsRemaining());
+            playerRoom.getRoomScene().removeShotCounter();
         } else if (!actSuccess && !plyr.getRole().getIsOnCardRole()) {
             plyr.setPlayerDollars(plyr.getPlayerDollars() + 1);
             boardController.updateSinglePlayerScore(plyr);
@@ -290,12 +290,12 @@ public final class BoardManager{
         shuffledDeck.addAll(deck);
 
         int numCards = deck.size();
-		
-		for (int i = 0; i < numCards; i++) {
-			int randItem = randInt(0, numCards-1);
-			Card temp = shuffledDeck.get(i);	
-			shuffledDeck.set(i, shuffledDeck.get(randItem)); 
-			shuffledDeck.set(randItem, temp);
+
+        for (int i = 0; i < numCards; i++) {
+            int randItem = randInt(0, numCards-1);
+            Card temp = shuffledDeck.get(i);
+            shuffledDeck.set(i, shuffledDeck.get(randItem));
+            shuffledDeck.set(randItem, temp);
         }
 
         for (int i = 0; i < deck.size(); i++) {
@@ -304,9 +304,9 @@ public final class BoardManager{
         }
 
         assert shuffledDeck.size() == deck.size() : "Elements in deck have gone missing after shuffle";
-        
+
         this.gameBoard.setDeck(shuffledDeck);
-        
+
         return shuffledDeck;
 
     }
@@ -315,7 +315,7 @@ public final class BoardManager{
         Select 10 random cards, assign them to scene objects.
         Remove these cards from the pool deck
     */
-    
+
     private void removeCardFromDeck(int cardIndex) {
         int originalDeckSize = this.getDeck().size();
         this.gameBoard.getDeck().remove(cardIndex);
@@ -332,7 +332,7 @@ public final class BoardManager{
 
     public ArrayList<Scene> createRandomScenes(int numScenes) {
         this.shuffleDeck(this.getDeck());
-        
+
         ArrayList<Scene> randomScenes = new ArrayList<Scene>();
         int originalDeckSize = this.getDeck().size();
 
@@ -344,8 +344,8 @@ public final class BoardManager{
             this.removeCardFromDeck(i);
         }
 
-        assert randomScenes.size() == numScenes : 
-                "Random scenes ArrayList not filled size: " 
+        assert randomScenes.size() == numScenes :
+                "Random scenes ArrayList not filled size: "
                         + randomScenes.size() + " desired size: " + numScenes;
 
         assert this.getDeck().size() == originalDeckSize - numScenes : "Items not correctly removed from deck.";
@@ -366,7 +366,7 @@ public final class BoardManager{
         scene.setShotsRemaining(room.getNumTakes());
     }
 
-    
+
     private int compareRoles(Role a, Role b) {
         return  a.getRoleLevel() - b.getRoleLevel();
     }
@@ -375,7 +375,7 @@ public final class BoardManager{
         ArrayList<Role> availableRoles = new ArrayList<Role>();
         ArrayList<Role> onCardRoles = scene.getOnCardRoles();
         ArrayList<Role> offCardRoles = scene.getOffCardRoles();
-        
+
         for (int i = 0; i < onCardRoles.size(); i++ ) {
             Role onCardRole = onCardRoles.get(i);
             if (onCardRole.getRoleAvailable()) {
@@ -402,7 +402,7 @@ public final class BoardManager{
             choice = choiceScanner.next();
             actionIndex = stringIsNumeric(choice) ? Integer.parseInt(choice) : -1;
             indexInRange = actionIndex >= 1 && actionIndex <= actions.size();
-            
+
             if (indexInRange) {
                 choice = actions.get(actionIndex-1);
             }
@@ -410,17 +410,17 @@ public final class BoardManager{
             validChoice = indexInRange;
         }
         return choice;
-    } 
+    }
 
     public void doPlayerTurn(Player ply) {
-        
+
         boolean done = false;
         Scanner choiceScanner = new Scanner(System.in);
         String choice = "";
         ArrayList<String> validActions = getValidActions(ply);
         boolean endOfDay = this.numberOfScenesRemaining == 1;
         while (!done && !endOfDay) {
-            ply.printPlayer();    
+            ply.printPlayer();
             printAvailableActions("",validActions);
             System.out.println("Enter a valid action as a number: ");
 
@@ -430,7 +430,7 @@ public final class BoardManager{
             validActions = registerAction(validActions, ply, choice);
         }
     }
-    
+
     public boolean doAction(Player ply, String choice, Scanner choiceScanner) {
         boolean turnFinished = false;
         switch (choice) {
@@ -439,7 +439,7 @@ public final class BoardManager{
                 break;
             case "upgrade":
                 doUpgradeIo(ply, choiceScanner);
-                
+
                 break;
             case "rehearse":
                 doRehearseIo(ply);
@@ -490,7 +490,7 @@ public final class BoardManager{
         }
         return actions;
     }
-    
+
     private ArrayList<String> getAvailableRanks(int playerRank) {
         System.out.println("Available Ranks: ");
         int maxRank = 6;
@@ -514,12 +514,12 @@ public final class BoardManager{
     public void doUpgradeIo(Player ply, Scanner choiceScanner) {
         int maxRank = 6;
         int playerRank = ply.getPlayerRank();
-        
+
         ArrayList<String> currencyChoices = new ArrayList<String>(Arrays.asList("credits", "dollars"));
         ArrayList<String> rankChoices = getAvailableRanks(ply.getPlayerRank());
 
         if (playerRank < maxRank) {
-            
+
             System.out.println("Enter a choice of rank as a number.\n");
             printAvailableActions("Rank ", rankChoices);
             boolean chooseRank = true;
@@ -531,9 +531,9 @@ public final class BoardManager{
                 boolean canUpgrade = false;
                 System.out.println("Select currency to use: ");
                 printAvailableActions("Currency ", currencyChoices);
-                
+
                 String currencyChoice = getActionChoice(currencyChoices, choiceScanner);
-                
+
                 if (currencyChoice.equals("dollars")) {
                     canUpgrade = ply.upgrade(rank, ply.getPlayerDollars(), 0);
                 } else {
@@ -564,7 +564,7 @@ public final class BoardManager{
     }
 
     private boolean stringIsNumeric(String input) {
-        
+
         try {
             Integer.parseInt(input);
         } catch (NumberFormatException exc) {
@@ -592,7 +592,7 @@ public final class BoardManager{
                 this.setPlayerRole(ply, roles.get(choice-1));
                 ply.setRehearsalBonus(0);
                 ply.getRole().printRole();
-                choiceValid = true;   
+                choiceValid = true;
             } else {
                 System.out.println("Invalid choice");
                 System.out.println("Choose a different role? y/n: ");
@@ -613,11 +613,23 @@ public final class BoardManager{
         } else {
             System.out.println("Acting not successful.");
         }
-        
+
 
         if (room.getRoomScene().getShotsRemaining() == 0) {
             System.out.println("Room's scene is finished! Awarding bonuses!\n");
-            
+            ArrayList<Player> plyrsInOffCardRole = room.getPlayersOffCard();
+            ArrayList<Player> plyrsInOnCardRole = room.getPlayersOnCard();
+            for(int i = 0; i < plyrsInOffCardRole.size(); i++){
+                boardController.removePlayerMarkerFromRole(ply);
+                boardController.moveToRoom(ply, ply.getPlayerRoom().getRoomName());
+            }
+            for(int i = 0; i < plyrsInOnCardRole.size(); i++){
+                boardController.removePlayerMarkerFromRole(ply);
+                boardController.moveToRoom(ply, ply.getPlayerRoom().getRoomName());
+            }
+            boardController.removeCardImage(room.getRoomName());
+
+
             this.payBonuses(room);
             this.finishRoomScene(room);
             System.out.println("Scenes remaining: " + this.numberOfScenesRemaining);
@@ -634,8 +646,8 @@ public final class BoardManager{
         ArrayList<Player> playersInRoom = room.getPlayersInRoom();
         for (Player p: playersInRoom) {
             p.setPlayerInRole(false);
-        }   
-        
+        }
+
         for (Role plyRole: onCards) {
             plyRole.setRoleAvailable(false);
         }
@@ -686,8 +698,8 @@ public final class BoardManager{
         ArrayList<String> actions = new ArrayList<String>();
         actions.add("end");
         if (!ply.getPlayerInRole()) {
-           actions.add("move");
-           
+            actions.add("move");
+
             if (playerRoom != castingOffice && playerRoom != trailers && playerRoom.getRoomScene() != null){
                 if (getAvailableRoles(playerRoom.getRoomScene()).size() != 0) {
                     actions.add("takerole");
@@ -715,7 +727,7 @@ public final class BoardManager{
 
     public void dealScenes(int numScenes) {
         ArrayList<Room> rooms = this.gameBoard.getRooms();
-        
+
         // It should be noted that not all rooms are contained within the board object
         // rooms.size() should be equivalent to the number of rooms in which a player can actually
         // act. The board should deal 10 scene cards at one time because there are 10 rooms.
