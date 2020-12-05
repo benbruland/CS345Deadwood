@@ -43,7 +43,7 @@ public final class BoardManager{
     private BoardManager(int numPlyrs, ArrayList<String> nameList) {
         assert numPlyrs >= 2 && numPlyrs <= 8 : "Invalid number of players: " + numPlyrs ;
         this.numPlayers = numPlyrs;
-        this.numberOfDays = numPlyrs > 3 ? 4 : 3;
+        this.numberOfDays = numPlyrs > 3 ? 4 : 2;
         this.dayOfGame = 1;
         this.initBoard(numPlyrs, nameList);
         this.activePlayer = chooseFirstPlayer();
@@ -740,7 +740,7 @@ public final class BoardManager{
             assignSceneToRoom(roomScene, dealRoom);
         }
 
-        this.numberOfScenesRemaining = numScenes;
+        this.numberOfScenesRemaining = 2; //TODO Reset this!!!!!
     }
 
 }

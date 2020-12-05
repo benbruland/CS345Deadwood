@@ -37,6 +37,7 @@ public class Board_Controller {
     private Map<String, boolean[][]> roomPositions = new HashMap<String, boolean[][]>();
     private Map<String, Label> playerScore = new HashMap<String, Label>();
     private HashMap<String, Button> buttonMap = new HashMap<String, Button>();
+    Label gameDayLabel;
     public static Stage main;
     public static Parent root;
     public static Pane mainFrame;
@@ -475,7 +476,7 @@ public class Board_Controller {
         System.out.println("Shots removed: #" + shotNum);
     }
 
-    public void setScenes(){
+    public void setScenes() {
         ArrayList<Room> roomList = boardManager.getBoard().getBoardRooms();
         for(Room room : roomList) {
             GuiData sceneCoordinates = room.getGuiData();
@@ -486,6 +487,10 @@ public class Board_Controller {
             cardBacks.put(sanitizeRoomName(room.getRoomName()), sceneImg);
             mainFrame.getChildren().add(sceneImg);
         }
+    }
+
+    public void resetScenes() {
+       scenes = new HashMap<String, ImageView>();
     }
 
     public void flipCardImage(String imgTitle, String roomName){
@@ -619,13 +624,17 @@ public class Board_Controller {
 
     private VBox createGameDataPane() {
         VBox gameData = new VBox(10);
+        gameDayLabel = new Label("Day Of Game: " + boardManager.getCurrentDay());
+        gameDayLabel.setAlignment(Pos.TOP_CENTER);
+        gameDayLabel.setFont(Font.font("Sylfaen", FontWeight.BOLD, 16));
+        gameDayLabel.setStyle("-fx-text-fill: white");
         gameData.setLayoutX(1198);
         gameData.setPrefSize(302, 450);
         gameData.setStyle("-fx-border-color: white");
         Label currPlayer = new Label("");
         currPlayer.setAlignment(Pos.TOP_CENTER);
         currPlayer.setFont(Font.font ("Sylfaen", 18));
-        gameData.getChildren().add(currPlayer);
+        gameData.getChildren().addAll(currPlayer,gameDayLabel);
         return gameData;
     }
 
@@ -657,7 +666,7 @@ public class Board_Controller {
         playerScore.put(playerName, lbl);
     }
 
-    public void updateSinglePlayerScore(Player plyr){
+    public void updateSinglePlayerScore(Player plyr) {
         String playerName = plyr.getName();
         Label lbl = playerScore.get(playerName);
         lbl.setText(playerName + ", Dollars: " + plyr.getPlayerDollars() + ", Credits: " + plyr.getPlayerCredits());
@@ -672,12 +681,53 @@ public class Board_Controller {
     public void endButtonHandler(ArrayList<String> actionList) {
         Player prevPlyr = boardManager.getActivePlayer();
         boardManager.gotoNextPlayer();
+
+        boolean endOfGame = false;
+
+        if (boardManager.getNumberOfScenesRemaining() == 1) {
+            endOfGame = boardManager.cycleGameDay();
+            cycleGuiDay();
+
+            if (endOfGame) {
+                ArrayList<Player> winners = boardManager.scoreGame();
+                String winnerString = "";
+                for (Player ply: winners) {
+                    winnerString += ply.getName() + "\n";
+                }
+                showDialog("Winners", winnerString);
+
+                System.exit(0);
+            }
+
+            return;
+        }
+
         Player plyr = boardManager.getActivePlayer();
         updateActivePlayer(prevPlyr, plyr, 20);
         actionList = boardManager.getValidActions(plyr);
         updateButtonStates(actionList);
+
+
+
     }
 
+    private void cycleGuiDay() {
+        movePlayersTo(boardManager.getBoard().getPlayers(), "trailer");
+        setScenes();
+        gameDayLabel.setText("Day Of Game: " + boardManager.getCurrentDay());
+        ArrayList<Room> rooms = boardManager.getBoard().getBoardRooms();
+        for (Room br: rooms) {
+            br.setFlippedOver(false);
+        }
+       //sresetScenes();
+        try {
+            setShotCounters();
+        } catch (Exception e) {
+            System.out.println(e);
+            e.printStackTrace();
+        }
+
+    }
 
 
     public void actButtonHandler(ArrayList<String> actionList) {
@@ -701,6 +751,18 @@ public class Board_Controller {
             showDialog("Rehearsal Bonus", "Player may not rehearse further.");
         }
         updateButtonStates(actionList);
+    }
+
+
+    private void movePlayersTo(ArrayList<Player> plys, String roomName) {
+        for (Player ply: plys) {
+            if (!ply.getPlayerInRole()) {
+                removeFromRoom(ply);
+            } else {
+                removePlayerMarkerFromRole(ply);
+            }
+            moveToRoom(ply, roomName);
+        }
     }
 
     public void setSidePanel() {

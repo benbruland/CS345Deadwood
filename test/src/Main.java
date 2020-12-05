@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Scanner;
 
 
-public class Main extends Application {
+public class Deadwood extends Application {
 
     @FXML
     private Slider numPlayers;
