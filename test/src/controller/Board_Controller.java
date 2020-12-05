@@ -690,7 +690,16 @@ public class Board_Controller {
 
     public void rehearseButtonHandler(ArrayList<String> actionList) {
         Player activePly = boardManager.getActivePlayer();
+        Room playerRoom = activePly.getPlayerRoom();
         actionList = boardManager.registerAction(actionList, activePly, "rehearse");
+        int rehearseBonus = activePly.getRehearsalBonus();
+        if (rehearseBonus < playerRoom.getRoomScene().getSceneCard().getBudget() - 1) {
+            activePly.setRehearsalBonus(rehearseBonus + 1);
+            rehearseBonus = activePly.getRehearsalBonus();
+            showDialog("Rehearsal Bonus", "Rehearsal Bonus Now: " + rehearseBonus);
+        } else {
+            showDialog("Rehearsal Bonus", "Player may not rehearse further.");
+        }
         updateButtonStates(actionList);
     }
 
