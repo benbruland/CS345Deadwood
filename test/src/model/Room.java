@@ -22,7 +22,7 @@ public class Room {
 	
 	//All on-card roles stored in scenes, these are randomly assigned.
 	private Scene roomScene;	
-
+	private boolean roomHasScene = roomScene != null;
 	//Off-card roles associated with specific sets / rooms
 	private	ArrayList<Role> offCardRoles;
 	
@@ -50,6 +50,7 @@ public class Room {
 		this.offCardRoles = offCards;
 		this.flippedOver = false;
 		this.numTakes = takes;
+		this.roomHasScene = scene != null;
 		assert takes >= 0 && takes < 4 : "Invalid number of shots for room : " + name;
 		this.playersInRoom = new ArrayList<Player>();
 	}
@@ -229,7 +230,12 @@ public class Room {
 		return this.roomScene;
 	}
 
+	public boolean roomHasScene() {
+		return this.roomHasScene;
+	}
+
 	public void setRoomScene(Scene s) {
+		this.roomHasScene = s != null;
 		this.roomScene = s;
 	}
 

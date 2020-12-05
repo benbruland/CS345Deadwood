@@ -442,15 +442,15 @@ public final class BoardManager{
         if (actions.contains(chosenAction)) {
             actions.remove(chosenAction);
         }
-        
+
         if (chosenAction.equals("move")) {
             if (playerRoom != castingOffice && playerRoom != trailers) {
-                if (!actions.contains("take role") && getAvailableRoles(playerRoom.getRoomScene()).size() != 0) {
-                    actions.add("take role");
+                if (!actions.contains("takerole") && getAvailableRoles(playerRoom.getRoomScene()).size() != 0) {
+                    actions.add("takerole");
                 }
                 actions.remove("upgrade");
             } else if (playerRoom == castingOffice || playerRoom == trailers) {
-                actions.remove("take role");
+                actions.remove("takerole");
             }
         } else if (chosenAction.equals("rehearse")) {
             actions.remove("act");
@@ -458,11 +458,9 @@ public final class BoardManager{
             actions.remove("rehearse");
         } else if (chosenAction.equals("upgrade")) {
             actions.remove("move");
-        } else if (chosenAction.equals("take role")) {
+        } else if (chosenAction.equals("takerole")) {
             actions.remove("move");
         }
-
-
         return actions;
     }
     
@@ -527,38 +525,6 @@ public final class BoardManager{
 
     //TODO Add isSpecialRoom() which returns boolean if room is trailer or office
 
-    public void doMoveIo(String roomChoice) {
-        System.out.println("in moveIO with: " + roomChoice);
-
-        Player ply = this.getActivePlayer();
-        String roomName = ply.getPlayerRoom().getRoomName();
-        boardController.removeFromRoom(ply);
-        boardController.moveToRoom(ply, roomChoice);
-        ply.move(this.getBoard().getRoomByName(roomChoice));
-//        if(roomChoice.equals("office") || roomChoice.equals("trailer")){
-//
-//            boardController.removeFromActingRoom(ply);
-//            boardController.moveToSpecialRoom(ply, roomChoice, boardController.getOpenSpecialRoomPosition(roomChoice));
-//            ply.move(this.getBoard().getRoomByName(roomChoice));
-//        }
-//        else{
-//            if(roomName.equals("office") || roomName.equals("trailer")){
-//                boardController.removeFromSpecialRoom(ply);
-//            }
-//            else{
-//                boardController.removeFromActingRoom(ply);
-//            }
-//            boardController.moveToActingRoom(ply, roomChoice, boardController.getOpenActingRoomPosition(roomName));
-//            ply.move(this.getBoard().getRoomByName(roomChoice));
-//        }
-
-        /* if scene card is face down */
-        Room plyRoom = ply.getPlayerRoom();
-        if (!ply.getPlayerRoom().getFlippedOver()){
-            boardController.flipCardImage(plyRoom.getRoomScene().getImageTitle(), plyRoom.getRoomName());
-            plyRoom.setFlippedOver(true);
-        }
-    }
 
     //Prints a list of role objects.
     public void printRoles(ArrayList<Role> roleList) {
@@ -697,7 +663,7 @@ public final class BoardManager{
            
             if (playerRoom != castingOffice && playerRoom != trailers && playerRoom.getRoomScene() != null){
                 if (getAvailableRoles(playerRoom.getRoomScene()).size() != 0) {
-                    actions.add("take role");
+                    actions.add("takerole");
                 }
             }
         } else {
