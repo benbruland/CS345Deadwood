@@ -30,8 +30,9 @@ public class Board_Controller {
     private static BoardManager boardManager = null;
     private static Board_Controller boardController = null;
     private Map<String, ImageView> scenes = new HashMap<String, ImageView>();
+    private Map<String, ImageView> cardBacks = new HashMap<String, ImageView>();
     private Map<String, ImageView> shots = new HashMap<String, ImageView>();
-    private Map<String, Image> playerMarkers = new HashMap<String, Image>();
+    private Map<String, ImageView> playerMarkers = new HashMap<String, ImageView>();
     private Map<String, GridPane> roomPanes = new HashMap<String, GridPane>();
     private Map<String, boolean[][]> roomPositions = new HashMap<String, boolean[][]>();
     private Map<String, Label> playerScore = new HashMap<String, Label>();
@@ -313,16 +314,40 @@ public class Board_Controller {
         setButtonStates(true, actionList);
     }
 
-    private void doTakeRoleIo(VBox gameData, GridPane roleButtonContainer, VBox rolePrompt, Role plyRole) {
+    private void doTakeRoleIo(ArrayList<String> actionList, VBox gameData, GridPane roleButtonContainer, VBox rolePrompt, Role plyRole) {
         Player ply = boardManager.getActivePlayer();
+        actionList = boardManager.registerAction(actionList, ply, "takerole");
+        updateButtonStates(actionList);
         String dialogMessage = "Failed to take the role! You are already in a role.";
         if (!ply.getPlayerInRole()) {
             boardManager.setPlayerRole(ply, plyRole);
+            setPlayerMarkerToRole(ply, plyRole);
             dialogMessage = "Successfully took role: " + plyRole.getRoleName();
         }
         showDialog("Take Role Attempt", dialogMessage);
         gameData.getChildren().remove(roleButtonContainer);
         gameData.getChildren().remove(rolePrompt);
+    }
+
+    public void setPlayerMarkerToRole(Player plyr, Role rl){
+        String playerName = plyr.getName();
+        removeFromRoom(plyr);
+        ImageView imgV = playerMarkers.get(playerName);
+        GuiData data;
+
+        if (rl.getIsOnCardRole()){
+
+        }
+        else{
+            data = rl.getGuiData();
+            imgV.setX(data.getX());
+            imgV.setY(data.getY());
+            mainFrame.getChildren().add(imgV);
+        }
+    }
+
+    public void removePlayerMarkerFromRole(Player plyr){
+        mainFrame.getChildren().remove(playerMarkers.get(plyr.getName()));
     }
 
     private VBox makePrompt(String promptStr, int vSpace) {
@@ -345,18 +370,16 @@ public class Board_Controller {
     }
 
 
-    public void takeRoleButtonHandler(ArrayList<String> actionList,
-                                      ArrayList<Button> buttons, VBox gameData, ActionEvent event) {
+    public void takeRoleButtonHandler(ArrayList<String> actionList, ArrayList<Button> buttons, VBox gameData, ActionEvent event) {
         Player activePly = boardManager.getActivePlayer();
         Room plyRoom = activePly.getPlayerRoom();
+        disableButtons("end");
+
 
         if (!plyRoom.roomHasScene()) {
             showDialog("No roles", "There are no roles in the casting office, or the trailers.");
             return;
         }
-
-        actionList = boardManager.registerAction(actionList, activePly, "takerole");
-        updateButtonStates(actionList);
 
         ArrayList<Role> roles = boardManager.getAvailableRoles(plyRoom.getRoomScene());
         ObservableList children = gameData.getChildren();
@@ -373,7 +396,7 @@ public class Board_Controller {
             roleButton.setPrefSize(200, 10);
             roleButton.setFont(roleFont);
             roleContainer.add(roleButton, roleCounter % 2, roleCounter/2);
-            roleButton.setOnAction(e -> doTakeRoleIo(gameData, roleContainer, rolePrompt,plyRole));
+            roleButton.setOnAction(e -> doTakeRoleIo(actionList, gameData, roleContainer, rolePrompt,plyRole));
             roleCounter++;
         }
     }
@@ -444,7 +467,7 @@ public class Board_Controller {
             ImageView sceneImg = new ImageView(new Image("/resources/imgs/CardBack.jpg", sceneCoordinates.getWidth(),sceneCoordinates.getHeight(), false, false));
             sceneImg.setX(sceneCoordinates.getX());
             sceneImg.setY(sceneCoordinates.getY());
-            scenes.put(roomName, sceneImg);
+            cardBacks.put(sanitizeRoomName(room.getRoomName()), sceneImg);
             mainFrame.getChildren().add(sceneImg);
         }
     }
@@ -464,6 +487,7 @@ public class Board_Controller {
         String sceneName = sanitizeRoomName(roomName) + "scene";
         ImageView img = scenes.get(sceneName);
         if (img != null){
+            System.out.println("In removeCardImage if statement");
             img.setImage(null);
             scenes.put(sceneName, img);
         }
@@ -620,7 +644,7 @@ public class Board_Controller {
     }
 
     public void moveButtonHandler(ArrayList<String> actionList, ActionEvent e, VBox gameData) {
-        //updateButtonStates(actionList);
+        disableButtons("end");
         generateMovePrompt(actionList, gameData, e);
     }
 
@@ -637,6 +661,7 @@ public class Board_Controller {
 
     public void actButtonHandler(ArrayList<String> actionList) {
         Player activePly = boardManager.getActivePlayer();
+        boardManager.doActIo(activePly);
         actionList = boardManager.registerAction(actionList, activePly, "act");
         updateButtonStates(actionList);
     }
@@ -708,14 +733,14 @@ public class Board_Controller {
 
     public void moveToRoom(Player plyr, String roomName) {
         try{
-            Image img;
+            ImageView imgV;
             GridPane gp;
             String sanRoomName = sanitizeRoomName(roomName);
-            if ((img = playerMarkers.get(plyr.getName())) != null){
+            if ((imgV = playerMarkers.get(plyr.getName())) != null){
                 if ((gp = roomPanes.get(sanRoomName)) != null){
                     int[] coordinates = getOpenPositionInRoom(sanRoomName);
                     setPositionOccupied(sanRoomName, coordinates[0], coordinates[1]);
-                    gp.add(new ImageView(img), coordinates[0], coordinates[1]);
+                    gp.add(imgV, coordinates[0], coordinates[1]);
                     plyr.setPlayerCoordinates(coordinates);
                 }
             }
@@ -757,10 +782,10 @@ public class Board_Controller {
 
     public void createPlayerMarker(Player plyr, int num){
         String color = plyr.getPlayerColor();
-        Image playerMarker;
+        ImageView playerMarker;
         String diceImage = "/resources/imgs/" + Character.toString(color.charAt(0)) + plyr.getPlayerRank() + ".png";
         System.out.println(diceImage);
-        playerMarker = new Image(diceImage, 44, 44 , false, true);
+        playerMarker = new ImageView(new Image(diceImage, 45, 45 , false, true));
         playerMarkers.put(plyr.getName(), playerMarker);
         moveToRoom(plyr, "trailer");
     }
