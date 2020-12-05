@@ -110,10 +110,8 @@ public class Board_Controller {
             showDialog("Move Failure", "The Player may not move, because the player is in a role.");
             return;
         }
-
-        String roomName = ply.getPlayerRoom().getRoomName();
-        boardController.removeFromRoom(ply);
-        boardController.moveToRoom(ply, roomChoice);
+        removeFromRoom(ply);
+        moveToRoom(ply, roomChoice);
         Room roomOfChoice = boardManager.getBoard().getRoomByName(roomChoice);
         ply.move(roomOfChoice);
         boardManager.registerAction(actionList, ply, "move");
@@ -121,8 +119,12 @@ public class Board_Controller {
         /* if scene card is face down */
         Room plyRoom = ply.getPlayerRoom();
         if (!ply.getPlayerRoom().getFlippedOver()){
+            String roomName = sanitizeRoomName(ply.getPlayerRoom().getRoomName());
             flipCardImage(plyRoom.getRoomScene().getImageTitle(), plyRoom.getRoomName());
             plyRoom.setFlippedOver(true);
+            GridPane roomPane = roomPanes.get(roomName);
+            roomPane.toFront();
+            roomPanes.put(roomName, roomPane);
         }
     }
 
@@ -344,16 +346,20 @@ public class Board_Controller {
         removeFromRoom(plyr);
         ImageView imgV = playerMarkers.get(playerName);
         GuiData data;
-
-        if (rl.getIsOnCardRole()){
-
+        if(rl.getIsOnCardRole()){
+            data = rl.getGuiData();
+            GuiData sceneData = plyr.getPlayerRoom().getGuiData();
+            imgV.setX(data.getX()+sceneData.getX());
+            imgV.setY(data.getY()+sceneData.getY());
+            imgV.toFront();
         }
         else{
             data = rl.getGuiData();
             imgV.setX(data.getX());
             imgV.setY(data.getY());
-            mainFrame.getChildren().add(imgV);
+            imgV.toFront();
         }
+        mainFrame.getChildren().add(imgV);
     }
 
     public void removePlayerMarkerFromRole(Player plyr){
