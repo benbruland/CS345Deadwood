@@ -607,25 +607,22 @@ public final class BoardManager{
     public boolean doActIo(Player ply) {
         boolean actSuccess = ply.act();
         Room room = ply.getPlayerRoom();
-        System.out.println("Card: " + room.getRoomScene().getSceneCard().getName());
-        if (actSuccess) {
-            System.out.printf("%s acted successfully on role: %s\n", ply.getName(), ply.getRole().getRoleName());
-        } else {
-            System.out.println("Acting not successful.");
-        }
-
 
         if (room.getRoomScene().getShotsRemaining() == 0) {
-            System.out.println("Room's scene is finished! Awarding bonuses!\n");
             ArrayList<Player> plyrsInOffCardRole = room.getPlayersOffCard();
             ArrayList<Player> plyrsInOnCardRole = room.getPlayersOnCard();
+            Player tempPlayer;
+            System.out.println("off card players: " + plyrsInOffCardRole.toString());
+            System.out.println("on card players: " + plyrsInOnCardRole.toString());
             for(int i = 0; i < plyrsInOffCardRole.size(); i++){
-                boardController.removePlayerMarkerFromRole(ply);
-                boardController.moveToRoom(ply, ply.getPlayerRoom().getRoomName());
+                tempPlayer = plyrsInOffCardRole.get(i);
+                boardController.removePlayerMarkerFromRole(tempPlayer);
+                boardController.moveToRoom(tempPlayer, tempPlayer.getPlayerRoom().getRoomName());
             }
             for(int i = 0; i < plyrsInOnCardRole.size(); i++){
-                boardController.removePlayerMarkerFromRole(ply);
-                boardController.moveToRoom(ply, ply.getPlayerRoom().getRoomName());
+                tempPlayer = plyrsInOnCardRole.get(i);
+                boardController.removePlayerMarkerFromRole(tempPlayer);
+                boardController.moveToRoom(tempPlayer, tempPlayer.getPlayerRoom().getRoomName());
             }
             boardController.removeCardImage(room.getRoomName());
 

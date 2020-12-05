@@ -128,10 +128,10 @@ public class Room {
 
 	public ArrayList<Player> getPlayersOffCard() {
 		ArrayList<Player> players = this.getPlayersInRoom();
-		ArrayList<Role> offCardRoles = this.getOffCardRoles();
 		ArrayList<Player> playersOffCard = new ArrayList<Player>();
 		for (Player ply: players) {
-			if (ply.getPlayerInRole() && offCardRoles.contains(ply.getRole())) {
+			if (ply.getPlayerInRole() && !ply.getRole().getIsOnCardRole()) {
+				System.out.println("Player off card added");
 				playersOffCard.add(ply);
 			}
 		}
@@ -141,10 +141,10 @@ public class Room {
 
 	public ArrayList<Player> getPlayersOnCard() {
 		ArrayList<Player> players = this.getPlayersInRoom();
-		ArrayList<Role> onCardRoles = this.getRoomScene().getSceneCard().getRoles();
 		ArrayList<Player> playersOnCard = new ArrayList<Player>();
 		for (Player ply: players) {
-			if (ply.getPlayerInRole() && onCardRoles.contains(ply.getRole())) {
+			if (ply.getPlayerInRole() && ply.getRole().getIsOnCardRole()) {
+				System.out.println("Player on card added");
 				playersOnCard.add(ply);
 			}
 		}

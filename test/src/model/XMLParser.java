@@ -63,6 +63,7 @@ public class XMLParser {
         }
 
         Role newRole = new Role(roleId, roleLevel, roleName, onCard, data);
+        newRole.setGuiData(data);
         newRole.setLine(line);
         return newRole;
     }

@@ -33,6 +33,7 @@ public class Role {
 
         String offCard = this.isOnCardRole ? "on card" : "off card";
         System.out.printf("Role: %-30sRole Type: %-15sLevel: %-1d\n", this.roleName, offCard, this.roleLevel);
+        System.out.println("Role gui data: ");
         
         
         
